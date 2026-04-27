@@ -14,7 +14,7 @@ CREATE DATABASE techstore_db;
 2. Налаштувати доступ у application.properties:
 
 spring.datasource.username=root
-spring.datasource.password=1234
+spring.datasource.password=123456
 
 ## Запуск
 
