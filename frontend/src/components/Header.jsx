@@ -1,23 +1,29 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 
 const Header = () => {
-  // Визначаємо, чи авторизований користувач, перевіряючи наявність токена
+  const navigate = useNavigate();
+  const location = useLocation();
   const isAuthenticated = !!localStorage.getItem('token');
 
+  // Визначаємо сторінки, на яких Header не повинен відображатися
+  const isAuthPage = location.pathname === '/login' || location.pathname === '/register';
+
+  // Якщо ми на сторінці авторизації або реєстрації — приховуємо весь Header
+  if (isAuthPage) {
+    return null;
+  }
+
   const handleLogout = () => {
-    // 2. Реалізувати логіку: видалення токена 
     localStorage.removeItem("token");
-    
-    window.location.reload();
+    navigate('/login'); // 4. Redirect 
   };
 
   return (
     <header className="bg-white shadow-sm py-4 px-8 flex justify-between items-center border-b border-gray-100">
       <Link to="/" className="text-xl font-bold text-[#4B32B1]">TechStore</Link>
       
-      <nav className="flex items-center gap-6">
-        {/* Показуємо кнопку виходу тільки якщо користувач увійшов (токен існує) */}
+      <nav>
         {isAuthenticated ? (
           <button 
             onClick={handleLogout}
@@ -26,11 +32,8 @@ const Header = () => {
             Вийти
           </button>
         ) : (
-          /* Якщо токена немає — показуємо посилання на вхід */
-          <Link 
-            to="/login" 
-            className="text-sm font-medium text-gray-600 hover:text-[#4B32B1] transition-colors"
-          >
+          /* На інших сторінках (наприклад, головній) показуємо вхід, якщо не авторизовані */
+          <Link to="/login" className="text-sm font-medium text-gray-600 hover:text-[#4B32B1]">
             Увійти
           </Link>
         )}
