@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const axiosInstance = axios.create({
-  baseURL: 'http://localhost:5000', // Заміни на URL вашого бекенду
+  baseURL: 'http://localhost:8080', // Заміни на URL вашого бекенду
 });
 
 // Додаємо перехоплювач (interceptor) для кожного запиту
