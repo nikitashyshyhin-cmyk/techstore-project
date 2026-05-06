@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import myPicture from '../assets/sidePicture.png';
 import logo from '../assets/logo.png';
+import axiosInstance from '../api/axios';
 
 const Register = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
@@ -16,6 +17,11 @@ const Register = () => {
   const validateForm = () => {
     if (!formData.email || !formData.password) {
       setError("Усі поля мають бути заповнені");
+      return false;
+    }
+    // ДОДАЄМО ПЕРЕВІРКУ ПАРОЛЯ
+    if (formData.password.length < 6) {
+      setError("Пароль має містити мінімум 6 символів");
       return false;
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -35,24 +41,29 @@ const Register = () => {
     setIsLoading(true);
 
     try {
-      // 4. Підключення API (POST /api/auth/register)
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
+      setIsLoading(true);
+      const response = await axiosInstance.post('/api/auth/register', formData);
 
-      const data = await response.json();
-
-      if (response.ok) {
-        // Успіх → redirect /login
-        navigate('/login');
-      } else {
-        // Помилка → показати повідомлення
-        setError(data.message || "Сталася помилка при реєстрації");
-      }
+      // Якщо ми тут — значить статус 2xx (успіх)
+      navigate('/login');
     } catch (err) {
-      setError("Не вдалося з'єднатися з сервером");
+      // 1. Перевіряємо, чи сервер взагалі відповів
+      if (err.response) {
+        // Сервер відповів статусом 400, 401, 409, 500 тощо.
+        // Виводимо повідомлення, яке прийшло з бекенду, або загальне "Помилка даних"
+        setError(err.response.data.message || "Помилка валідації на сервері");
+
+        // Порада: виведи в консоль, щоб побачити точну структуру відповіді
+        console.log("Дані помилки від сервера:", err.response.data);
+      }
+      // 2. Якщо сервер не відповів (проблеми з мережею або сервер вимкнений)
+      else if (err.request) {
+        setError("Сервер недоступний. Перевірте з'єднання або MySQL.");
+      }
+      // 3. Інші технічні помилки
+      else {
+        setError("Сталася неочікувана помилка при відправці запиту.");
+      }
     } finally {
       setIsLoading(false);
     }
