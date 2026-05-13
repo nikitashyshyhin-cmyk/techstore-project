@@ -21,7 +21,13 @@ const Profile = () => {
         const response = await axiosInstance.get('/api/users/me');
         setUser(response.data);
       } catch (err) {
-        // Тимчасова заглушка для тестування UI, поки бекенд-задача не замерджена
+        // Якщо бекенд повернув 401 — чистимо токен і йдемо на логін
+        if (err.response?.status === 401) {
+          localStorage.removeItem('token');
+          navigate('/login');
+          return;
+        }
+        
         setUser({
           name: 'firstName lastName',
           email: 'example@gmail.com',
