@@ -1,5 +1,6 @@
 package com.techstore.controller;
 
+import com.techstore.dto.ProductDetailResponse;
 import com.techstore.dto.ProductResponse;
 import com.techstore.service.ProductService;
 
@@ -29,5 +30,10 @@ public class ProductController {
     ) {
         Pageable pageable = PageRequest.of(page, size);
         return productService.getProducts(pageable);
+    }
+
+    @GetMapping("/{id}")
+    public ProductDetailResponse getProductById(@PathVariable Long id) {
+        return productService.getProductById(id);
     }
 }
