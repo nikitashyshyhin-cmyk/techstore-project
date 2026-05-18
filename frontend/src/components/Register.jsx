@@ -44,27 +44,20 @@ const Register = () => {
       setIsLoading(true);
       const response = await axiosInstance.post('/api/auth/register', formData);
 
-      // Якщо ми тут — значить статус 2xx (успіх)
       navigate('/login');
-    } catch (err) {
-      // 1. Перевіряємо, чи сервер взагалі відповів
-      if (err.response) {
-        // Сервер відповів статусом 400, 401, 409, 500 тощо.
-        // Виводимо повідомлення, яке прийшло з бекенду, або загальне "Помилка даних"
-        setError(err.response.data.message || "Помилка валідації на сервері");
+        } catch (err) {
+          console.error("Registration error:", err);
 
-        // Порада: виведи в консоль, щоб побачити точну структуру відповіді
-        console.log("Дані помилки від сервера:", err.response.data);
-      }
-      // 2. Якщо сервер не відповів (проблеми з мережею або сервер вимкнений)
-      else if (err.request) {
-        setError("Сервер недоступний. Перевірте з'єднання або MySQL.");
-      }
-      // 3. Інші технічні помилки
-      else {
-        setError("Сталася неочікувана помилка при відправці запиту.");
-      }
-    } finally {
+          // Перевіряємо, чи повернув сервер помилку 409 (Conflict) або 400 (Bad Request)
+          if (err.response?.status === 409) {
+            setError("Користувач з таким Email вже зареєстрований.");
+          } else if (err.response?.status === 400) {
+            setError(err.response.data.message || "Некоректні дані для реєстрації.");
+          } else {
+            // Якщо впав сам сервер (500) або немає мережі
+            setError("Помилка сервера при реєстрації. Спробуйте пізніше.");
+          }
+        } finally {
       setIsLoading(false);
     }
   };
