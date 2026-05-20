@@ -24,10 +24,16 @@ public class ProductController {
 
     @GetMapping
     public Page<ProductResponse> getProducts(
+
+            @RequestParam(required = false) String search,
+
             @RequestParam(defaultValue = "0") int page,
+
             @RequestParam(defaultValue = "10") int size
     ) {
+
         Pageable pageable = PageRequest.of(page, size);
-        return productService.getProducts(pageable);
+
+        return productService.getProducts(search, pageable);
     }
 }
