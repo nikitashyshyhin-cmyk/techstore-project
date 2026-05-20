@@ -21,9 +21,24 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Page<ProductResponse> getProducts(Pageable pageable) {
-        return productRepository.findAll(pageable)
-                .map(this::mapToResponse);
+    public Page<ProductResponse> getProducts(
+            String search,
+            Pageable pageable
+    ) {
+
+        Page<Product> products;
+
+        if (search == null || search.trim().isEmpty()) {
+
+            products = productRepository.findAll(pageable);
+
+        } else {
+
+            products = productRepository
+                    .findByNameContainingIgnoreCase(search, pageable);
+        }
+
+        return products.map(this::mapToResponse);
     }
 
     private ProductResponse mapToResponse(Product product) {
