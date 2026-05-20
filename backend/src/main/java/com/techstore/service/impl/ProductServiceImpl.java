@@ -1,7 +1,9 @@
 package com.techstore.service.impl;
 
+import com.techstore.dto.ProductDetailResponse;
 import com.techstore.dto.ProductResponse;
 import com.techstore.entity.Product;
+import com.techstore.exception.ResourceNotFoundException;
 import com.techstore.repository.ProductRepository;
 import com.techstore.service.ProductService;
 
@@ -57,5 +59,21 @@ public class ProductServiceImpl implements ProductService {
         if (text == null) return "";
         if (text.length() <= maxLength) return text;
         return text.substring(0, maxLength) + "...";
+    }
+
+    @Override
+    public ProductDetailResponse getProductById(Long id) {
+        // 1. Шукаємо в базі. Якщо не знайшли — кидаємо наш ResourceNotFoundException
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + id));
+
+        // 2. Мапимо (перетворюємо) Entity у наш DTO
+        return new ProductDetailResponse(
+                product.getId(),
+                product.getName(),
+                product.getDescription(),
+                product.getPrice(),
+                product.getImageUrl()
+        );
     }
 }

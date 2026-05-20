@@ -1,5 +1,6 @@
 package com.techstore.service;
 
+import com.techstore.dto.ProductDetailResponse;
 import com.techstore.dto.ProductResponse;
 
 import org.springframework.data.domain.Page;
@@ -11,4 +12,6 @@ public interface ProductService {
             String search,
             Pageable pageable
     );
+    ProductDetailResponse getProductById(Long id);
+
 }
