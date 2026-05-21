@@ -44,7 +44,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private ProductResponse mapToResponse(Product product) {
-        String shortDescription = truncate(product.getDescription(), 100);
+        String shortDescription = truncate(product.getDescription(), 55);
 
         return new ProductResponse(
                 product.getId(),
