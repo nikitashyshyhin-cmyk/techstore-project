@@ -6,17 +6,27 @@ import profileIcon from '../assets/profile.png';
 import wishlistIcon from '../assets/wishlist.png';
 import ordersIcon from '../assets/orders.png';
 import logoutIcon from '../assets/logout.png';
+import securityIcon from '../assets/security.png';
 
 const Profile = () => {
   const [activeTab, setActiveTab] = useState('profile');
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState(null);
   
+  // Стани для редагування профілю
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({ name: '', email: '', phone: '' });
   const [errors, setErrors] = useState({});
   const [statusMsg, setStatusMsg] = useState(null); 
   const [isSaving, setIsSaving] = useState(false);
+
+  // Стани для зміни пароля
+  const [pwdData, setPwdData] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
+  // Об'єкт для відстеження видимості паролів ({ currentPassword: false, ... })
+  const [showPasswords, setShowPasswords] = useState({ currentPassword: false, newPassword: false, confirmPassword: false });
+  const [pwdErrors, setPwdErrors] = useState({});
+  const [pwdStatusMsg, setPwdStatusMsg] = useState(null);
+  const [isSavingPwd, setIsSavingPwd] = useState(false);
 
   const navigate = useNavigate();
 
@@ -56,6 +66,7 @@ const Profile = () => {
     navigate('/login');
   };
 
+  // --- ЛОГІКА РЕДАГУВАННЯ ПРОФІЛЮ ---
   const validateField = (name, value) => {
     let error = null;
     if (name === 'email') {
@@ -79,7 +90,6 @@ const Profile = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    
     const error = validateField(name, value);
     setErrors(prev => ({ ...prev, [name]: error }));
     if (statusMsg) setStatusMsg(null);
@@ -97,7 +107,7 @@ const Profile = () => {
     setStatusMsg(null);
   };
 
-  const handleSubmit = async () => {
+  const handleSubmitProfile = async () => {
     const newErrors = {
       email: validateField('email', formData.email),
       name: validateField('name', formData.name),
@@ -129,18 +139,104 @@ const Profile = () => {
     }
   };
 
-  const hasChanges = user && JSON.stringify(formData) !== JSON.stringify({ name: user.name, email: user.email, phone: user.phone });
-  const hasErrors = Object.values(errors).some(err => err !== null) || !formData.name || !formData.email || !formData.phone;
-  const canSave = hasChanges && !hasErrors;
+  // --- ЛОГІКА ЗМІНИ ПАРОЛЯ ---
+  const validatePwdField = (name, value, allValues = pwdData) => {
+    let error = null;
+    if (name === 'currentPassword' && !value) {
+      error = "Введіть поточний пароль";
+    }
+    if (name === 'newPassword') {
+      if (!value) error = "Введіть новий пароль";
+      else if (value.length < 6) error = "Пароль має містити мінімум 6 символів"; 
+    }
+    if (name === 'confirmPassword') {
+      if (!value) error = "Підтвердіть новий пароль";
+      else if (value !== allValues.newPassword) error = "Паролі не співпадають";
+    }
+    return error;
+  };
+
+  const handlePwdChange = (e) => {
+    const { name, value } = e.target;
+    const newPwdData = { ...pwdData, [name]: value };
+    setPwdData(newPwdData);
+    
+    const newErrors = { ...pwdErrors };
+    newErrors[name] = validatePwdField(name, value, newPwdData);
+    if (name === 'newPassword' && newPwdData.confirmPassword) {
+      newErrors.confirmPassword = validatePwdField('confirmPassword', newPwdData.confirmPassword, newPwdData);
+    }
+    
+    setPwdErrors(newErrors);
+    if (pwdStatusMsg) setPwdStatusMsg(null);
+  };
+
+  // Функція перемикання видимості пароля
+  const togglePasswordVisibility = (key) => {
+    setShowPasswords(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const handleSubmitPassword = async () => {
+    const newErrors = {
+      currentPassword: validatePwdField('currentPassword', pwdData.currentPassword),
+      newPassword: validatePwdField('newPassword', pwdData.newPassword),
+      confirmPassword: validatePwdField('confirmPassword', pwdData.confirmPassword)
+    };
+    
+    const activeErrors = Object.fromEntries(Object.entries(newErrors).filter(([_, v]) => v != null));
+    setPwdErrors(activeErrors);
+
+    if (Object.keys(activeErrors).length > 0) return;
+
+    setIsSavingPwd(true);
+    setPwdStatusMsg(null);
+
+    try {
+      await axiosInstance.put('/api/users/me/password', {
+        currentPassword: pwdData.currentPassword,
+        newPassword: pwdData.newPassword,
+        confirmPassword: pwdData.confirmPassword
+      });
+      
+      setPwdStatusMsg({ type: 'success', text: '✓ Пароль успішно змінено' });
+      // Очищаємо форму та видимість
+      setPwdData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      setShowPasswords({ currentPassword: false, newPassword: false, confirmPassword: false });
+      setTimeout(() => setPwdStatusMsg(null), 3000);
+    } catch (err) {
+      setPwdStatusMsg({ type: 'error', text: err.response?.data?.message || 'Неправильний поточний пароль або помилка сервера.' });
+    } finally {
+      setIsSavingPwd(false);
+    }
+  };
+
+  const hasProfileChanges = user && JSON.stringify(formData) !== JSON.stringify({ name: user.name, email: user.email, phone: user.phone });
+  const hasProfileErrors = Object.values(errors).some(err => err !== null) || !formData.name || !formData.email || !formData.phone;
+  const canSaveProfile = hasProfileChanges && !hasProfileErrors;
+
+  const canSavePwd = pwdData.currentPassword && pwdData.newPassword && pwdData.confirmPassword && !Object.values(pwdErrors).some(err => err !== null);
 
   const userInitial = user?.name?.trim().charAt(0).toUpperCase() || 'A';
 
   const tabs = [
     { id: 'profile', label: 'Профіль', icon: profileIcon },
+    { id: 'security', label: 'Безпека', icon: securityIcon },
     { id: 'wishlist', label: 'Список бажань', icon: wishlistIcon },
     { id: 'orders', label: 'Історія покупок', icon: ordersIcon },
     { id: 'logout', label: 'Вийти', icon: logoutIcon },
   ];
+
+  // Іконки ока (Lucide)
+  const eyeIcon = (
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+    </svg>
+  );
+  const eyeOffIcon = (
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>
+    </svg>
+  );
 
   if (isLoading) return <div className="min-h-screen flex items-center justify-center text-[#4B32B1] animate-pulse">Завантаження профілю...</div>;
 
@@ -167,7 +263,7 @@ const Profile = () => {
                   : 'text-gray-400 hover:bg-gray-50'
                 }`}
               >
-                <img src={tab.icon} alt="" className={`w-5 h-5 ${activeTab === tab.id ? 'brightness-0 invert' : ''}`} />
+                <img src={tab.icon} alt="" className={`w-5 h-5 ${activeTab === tab.id ? 'brightness-0 invert' : ''} ${tab.id === 'security' && activeTab !== 'security' ? 'opacity-60' : ''}`} />
                 <span className="text-sm font-medium">{tab.label}</span>
               </button>
             ))}
@@ -175,9 +271,11 @@ const Profile = () => {
         </div>
 
         {/* CONTENT */}
-        <div className="flex-1 p-16 flex flex-col items-center justify-start overflow-y-auto">
-          {activeTab === 'profile' ? (
-            <div className="w-full max-w-[500px] mx-auto mt-4">
+        <div className="flex-1 p-16 flex flex-col items-center justify-start overflow-y-auto relative">
+          
+          {/* ТАБ: ПРОФІЛЬ */}
+          {activeTab === 'profile' && (
+            <div className="w-full max-w-[500px] mx-auto mt-4 animate-fade-in relative z-10">
               <h1 className="text-2xl text-gray-400 font-light tracking-wider mb-10 text-center">Персональна інформація</h1>
 
               {statusMsg && statusMsg.type === 'error' && (
@@ -192,16 +290,13 @@ const Profile = () => {
                   { label: 'Full Name', key: 'name', icon: <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/> },
                   { label: 'Phone Number', key: 'phone', icon: <path d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/> }
                 ].map((field, idx) => (
-                  <div key={idx} className="relative">
-                    {/* Змінено items-start на items-center для відцентрування іконки */}
+                  <div key={idx} className="relative z-10">
                     <div className={`flex items-center gap-4 p-5 rounded-xl border shadow-sm transition-all duration-300 ${isEditing ? 'bg-white border-gray-200' : 'bg-gray-50/80 border-gray-100'} ${errors[field.key] ? 'border-red-300 bg-red-50/30' : ''}`}>
-                      {/* Прибрано mt-1 */}
                       <div className={`ml-2 transition-colors ${errors[field.key] ? 'text-red-400' : 'text-gray-300'}`}>
                         <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">{field.icon}</svg>
                       </div>
                       <div className="flex-1">
                         <label className="text-[10px] uppercase text-gray-300 font-bold tracking-widest block mb-1">{field.label}</label>
-                        {/* Тепер тут завжди input, який змінює свої стани замість перемикання тегів */}
                         <input
                           type={field.key === 'email' ? 'email' : 'text'}
                           name={field.key}
@@ -224,7 +319,7 @@ const Profile = () => {
                 ))}
               </div>
 
-              <div className="pt-8 flex flex-col items-center gap-4">
+              <div className="pt-8 flex flex-col items-center gap-4 relative z-0">
                 <div className="flex gap-4">
                   {!isEditing ? (
                     <button 
@@ -236,10 +331,10 @@ const Profile = () => {
                   ) : (
                     <>
                       <button 
-                        onClick={handleSubmit} 
-                        disabled={!canSave || isSaving}
+                        onClick={handleSubmitProfile} 
+                        disabled={!canSaveProfile || isSaving}
                         className={`px-12 py-4 rounded-lg font-medium shadow-xl transition-all ${
-                          canSave 
+                          canSaveProfile 
                           ? 'bg-green-600 text-white hover:bg-green-700 shadow-green-500/10' 
                           : 'bg-gray-200 text-gray-400 cursor-not-allowed'
                         }`}
@@ -256,21 +351,98 @@ const Profile = () => {
                     </>
                   )}
                 </div>
-                
                 <div className={`h-6 transition-opacity duration-500 ${statusMsg?.type === 'success' ? 'opacity-100' : 'opacity-0'}`}>
                   <p className="text-green-600 text-sm font-medium">{statusMsg?.text}</p>
                 </div>
               </div>
-
             </div>
-          ) : (
-            <div className="text-center space-y-4 animate-fade-in w-full h-full flex flex-col justify-center items-center pb-20">
+          )}
+
+          {/* ТАБ: БЕЗПЕКА (Зміна пароля) */}
+          {activeTab === 'security' && (
+            <div className="w-full max-w-[500px] mx-auto mt-4 animate-fade-in relative z-10">
+              <h1 className="text-2xl text-gray-400 font-light tracking-wider mb-10 text-center">Зміна пароля</h1>
+
+              {pwdStatusMsg && pwdStatusMsg.type === 'error' && (
+                <div className="mb-6 p-4 rounded-lg text-sm font-medium border bg-red-50 text-red-600 border-red-200">
+                  {pwdStatusMsg.text}
+                </div>
+              )}
+
+              <div className="space-y-6">
+                {[
+                  { label: 'Поточний пароль', key: 'currentPassword' },
+                  { label: 'Новий пароль', key: 'newPassword' },
+                  { label: 'Підтвердження пароля', key: 'confirmPassword' }
+                ].map((field, idx) => (
+                  <div key={idx} className="relative z-10">
+                    <div className={`flex items-center gap-4 p-5 rounded-xl border shadow-sm transition-all duration-300 bg-white border-gray-200 ${pwdErrors[field.key] ? 'border-red-300 bg-red-50/30' : ''}`}>
+                      <div className={`ml-2 transition-colors ${pwdErrors[field.key] ? 'text-red-400' : 'text-gray-300'}`}>
+                        <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                          <path d="M7 11V7a5 5 0 0110 0v4"></path>
+                        </svg>
+                      </div>
+                      <div className="flex-1 relative"> {/* relative потрібен для ока */}
+                        <label className="text-[10px] uppercase text-gray-300 font-bold tracking-widest block mb-1">{field.label}</label>
+                        {/* Кнопка "Показати пароль" */}
+                        <button 
+                          type="button" 
+                          onClick={() => togglePasswordVisibility(field.key)}
+                          className="absolute right-0 bottom-1.5 p-1 text-gray-400 hover:text-[#4B32B1] focus:outline-none transition-colors z-10"
+                          title={showPasswords[field.key] ? "Приховати пароль" : "Показати пароль"}
+                        >
+                          {showPasswords[field.key] ? eyeOffIcon : eyeIcon}
+                        </button>
+                        <input
+                          type={showPasswords[field.key] ? "text" : "password"}
+                          name={field.key}
+                          value={pwdData[field.key]}
+                          onChange={handlePwdChange}
+                          className={`w-full bg-transparent text-sm font-medium focus:outline-none border-b pb-1 transition-colors text-gray-700 pr-10 ${
+                            pwdErrors[field.key] ? 'border-red-400 text-red-500 border-dashed' : 'border-gray-300 focus:border-[#4B32B1] border-dashed'
+                          }`}
+                          placeholder="••••••••"
+                        />
+                      </div>
+                    </div>
+                    <div className={`absolute -bottom-4 left-6 transition-opacity duration-300 ${pwdErrors[field.key] ? 'opacity-100' : 'opacity-0'}`}>
+                      <span className="text-[11px] text-red-500 italic">{pwdErrors[field.key] || ' '}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="pt-8 flex flex-col items-center gap-4 relative z-0">
+                <button 
+                  onClick={handleSubmitPassword} 
+                  disabled={!canSavePwd || isSavingPwd}
+                  className={`px-16 py-4 rounded-lg font-medium shadow-xl transition-all ${
+                    canSavePwd 
+                    ? 'bg-[#4B32B1] text-white hover:bg-[#3b2888] shadow-[#4B32B1]/10' 
+                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                  }`}
+                >
+                  {isSavingPwd ? 'Оновлення...' : 'Змінити пароль'}
+                </button>
+                
+                <div className={`h-6 transition-opacity duration-500 ${pwdStatusMsg?.type === 'success' ? 'opacity-100' : 'opacity-0'}`}>
+                  <p className="text-green-600 text-sm font-medium">{pwdStatusMsg?.text}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ІНШІ ТАБИ (Empty State) */}
+          {activeTab !== 'profile' && activeTab !== 'security' && (
+            <div className="text-center space-y-4 animate-fade-in w-full h-full flex flex-col justify-center items-center pb-20 relative z-10">
               <div className="text-6xl opacity-10">{activeTab === 'wishlist' ? '💜' : '📋'}</div>
               <p className="text-gray-400 italic">
                 {activeTab === 'wishlist' ? 'Ваш список бажань поки що порожній...' : 'Ви ще не зробили жодного замовлення.'}
               </p>
             </div>
           )}
+
         </div>
       </div>
     </div>
