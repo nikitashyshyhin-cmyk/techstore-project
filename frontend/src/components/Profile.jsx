@@ -11,41 +11,83 @@ const Profile = () => {
   const [activeTab, setActiveTab] = useState('profile');
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState(null);
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: ''
+  });
+
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProfile = async () => {
       setIsLoading(true);
+
       try {
-        // Коли бекенд буде готовий, цей запит запрацює
         const response = await axiosInstance.get('/api/users/me');
+
         setUser(response.data);
+
+        setFormData({
+          name: response.data.name || '',
+          email: response.data.email || '',
+          phone: response.data.phone || ''
+        });
       } catch (err) {
-        // Якщо бекенд повернув 401 — чистимо токен і йдемо на логін
         if (err.response?.status === 401) {
           localStorage.removeItem('token');
           navigate('/login');
           return;
         }
-        
-        setUser({
-          name: 'firstName lastName',
+
+        const fallbackUser = {
+          name: 'Artem Danshyn',
           email: 'example@gmail.com',
-          phone: '+380 50 123 45 67'
-        });
+          phone: '+380501234567'
+        };
+
+        setUser(fallbackUser);
+        setFormData(fallbackUser);
       } finally {
         setIsLoading(false);
       }
     };
+
     fetchProfile();
-  }, []);
+  }, [navigate]);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
     navigate('/login');
   };
 
-  const userInitial = user?.name?.trim().charAt(0).toUpperCase() || 'A';
+  const handleEdit = () => {
+    setIsEditing(true);
+  };
+
+  const handleCancel = () => {
+    setIsEditing(false);
+
+    setFormData({
+      name: user.name,
+      email: user.email,
+      phone: user.phone
+    });
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const userInitial =
+    user?.name?.trim().charAt(0).toUpperCase() || 'A';
 
   const tabs = [
     { id: 'profile', label: 'Профіль', icon: profileIcon },
@@ -54,66 +96,133 @@ const Profile = () => {
     { id: 'logout', label: 'Вийти', icon: logoutIcon },
   ];
 
-  if (isLoading) return <div className="min-h-screen flex items-center justify-center text-[#4B32B1] animate-pulse">Завантаження профілю...</div>;
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-[#4B32B1] animate-pulse">
+        Завантаження профілю...
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-[calc(100vh-80px)] bg-gradient-to-t from-[#E5E0FF] to-white flex items-center justify-center p-6">
       <div className="bg-white w-full max-w-[1250px] min-h-[650px] rounded-2xl shadow-sm flex overflow-hidden border border-gray-50">
-        
-        {/* SIDEBAR */}
+
         <div className="w-[320px] border-r border-gray-100 p-10 flex flex-col items-center">
-          <div className="w-24 h-24 bg-[#4B32B1] rounded-full flex items-center justify-center text-white text-3xl font-bold mb-6 shadow-lg shadow-[#4B32B1]/10">
+          <div className="w-28 h-28 bg-[#4B32B1] rounded-full flex items-center justify-center text-white text-4xl font-bold mb-6">
             {userInitial}
           </div>
-          <h2 className="text-xl font-medium text-gray-700 mb-1">Особистий кабінет</h2>
-          <p className="text-gray-400 text-[13px] text-center mb-10">Керуйте своїм обліковим записом</p>
+
+          <h2 className="text-xl font-medium text-gray-700 mb-1">
+            Особистий кабінет
+          </h2>
+
+          <p className="text-gray-400 text-[13px] text-center mb-10">
+            Керуйте своїм обліковим записом
+          </p>
 
           <div className="w-full space-y-2">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
-                onClick={() => tab.id === 'logout' ? handleLogout() : setActiveTab(tab.id)}
+                onClick={() =>
+                  tab.id === 'logout'
+                    ? handleLogout()
+                    : setActiveTab(tab.id)
+                }
                 className={`w-full flex items-center gap-4 px-5 py-4 rounded-lg transition-all duration-300 ${
-                  activeTab === tab.id 
-                  ? 'bg-[#4B32B1] text-white shadow-md' 
-                  : 'text-gray-400 hover:bg-gray-50'
+                  activeTab === tab.id
+                    ? 'bg-[#4B32B1] text-white'
+                    : 'text-gray-400 hover:bg-gray-50'
                 }`}
               >
-                <img src={tab.icon} alt="" className={`w-5 h-5 ${activeTab === tab.id ? 'brightness-0 invert' : ''}`} />
-                <span className="text-sm font-medium">{tab.label}</span>
+                <img
+                  src={tab.icon}
+                  alt=""
+                  className={`w-5 h-5 ${
+                    activeTab === tab.id
+                      ? 'brightness-0 invert'
+                      : ''
+                  }`}
+                />
+
+                <span className="text-sm font-medium">
+                  {tab.label}
+                </span>
               </button>
             ))}
           </div>
         </div>
 
-        {/* CONTENT */}
-        <div className="flex-1 p-16 flex flex-col items-center justify-center">
+        <div className="flex-1 p-16 flex flex-col items-center">
           {activeTab === 'profile' ? (
-            <>
-              <h1 className="text-2xl text-gray-400 font-light mb-12 tracking-wider">Персональна інформація</h1>
-              <div className="w-full max-w-[500px] space-y-5">
+            <div className="w-full max-w-[500px]">
+              <h1 className="text-2xl text-gray-400 font-light tracking-wider mb-10 text-center">
+                Персональна інформація
+              </h1>
+
+              <div className="space-y-6">
                 {[
-                  { label: 'Email Address', value: user.email, icon: <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/> },
-                  { label: 'Full Name', value: user.name, icon: <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/> },
-                  { label: 'Phone Number', value: user.phone, icon: <path d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/> }
-                ].map((field, idx) => (
-                  <div key={idx} className="flex items-center gap-4 p-5 bg-gray-50/80 rounded-lg border border-gray-100 shadow-sm">
-                    <div className="text-gray-300 ml-2">
-                      <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">{field.icon}</svg>
-                    </div>
-                    <div className="flex-1">
-                      <label className="text-[10px] uppercase text-gray-300 font-bold tracking-widest block mb-1">{field.label}</label>
-                      <p className="text-gray-600 text-sm font-medium">{field.value || 'Не вказано'}</p>
-                    </div>
+                  { label: 'Email Address', key: 'email' },
+                  { label: 'Full Name', key: 'name' },
+                  { label: 'Phone Number', key: 'phone' }
+                ].map((field) => (
+                  <div
+                    key={field.key}
+                    className="p-5 rounded-xl border bg-gray-50"
+                  >
+                    <label className="text-[10px] uppercase text-gray-300 font-bold tracking-widest block mb-1">
+                      {field.label}
+                    </label>
+
+                    <input
+                      type={
+                        field.key === 'email'
+                          ? 'email'
+                          : 'text'
+                      }
+                      name={field.key}
+                      value={
+                        isEditing
+                          ? formData[field.key]
+                          : user[field.key]
+                      }
+                      onChange={handleInputChange}
+                      disabled={!isEditing}
+                      className="w-full bg-transparent text-sm font-medium focus:outline-none"
+                    />
                   </div>
                 ))}
               </div>
-            </>
+
+              <div className="pt-8 flex justify-center gap-4">
+                {!isEditing ? (
+                  <button
+                    onClick={handleEdit}
+                    className="bg-[#4B32B1] text-white px-20 py-4 rounded-lg"
+                  >
+                    Редагувати
+                  </button>
+                ) : (
+                  <>
+                    <button className="bg-green-600 text-white px-12 py-4 rounded-lg">
+                      Зберегти зміни
+                    </button>
+
+                    <button
+                      onClick={handleCancel}
+                      className="bg-white border border-gray-200 text-gray-500 px-12 py-4 rounded-lg"
+                    >
+                      Скасувати
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
           ) : (
-            <div className="text-center space-y-4 animate-fade-in">
-              <div className="text-6xl opacity-10">{activeTab === 'wishlist' ? '💜' : '📋'}</div>
+            <div className="text-center">
               <p className="text-gray-400 italic">
-                {activeTab === 'wishlist' ? 'Ваш список бажань поки що порожній...' : 'Ви ще не зробили жодного замовлення.'}
+                Контент відсутній
               </p>
             </div>
           )}
