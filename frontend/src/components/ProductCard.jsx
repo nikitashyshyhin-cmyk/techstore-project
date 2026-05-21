@@ -24,7 +24,7 @@ const ProductCard = ({ product }) => {
           {product.name}
         </h3>
         <p className="text-gray-400 text-xs mb-4 line-clamp-2 leading-relaxed">
-          {product.shortDescription || product.description || "Опис відсутній"}
+          {product.shortDescription || "Опис відсутній"}
         </p>
         
         <div className="mt-auto flex items-center justify-between">

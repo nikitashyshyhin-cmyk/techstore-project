@@ -1,13 +1,18 @@
 package com.techstore.service.impl;
 
+import com.techstore.dto.ChangePasswordRequest;
 import com.techstore.dto.UserResponse;
 import com.techstore.entity.User;
+import com.techstore.exception.ResourceNotFoundException;
 import com.techstore.repository.UserRepository;
 import com.techstore.service.UserService;
+import com.techstore.dto.UserUpdateRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import org.springframework.web.server.ResponseStatusException;
@@ -16,12 +21,12 @@ import org.springframework.http.HttpStatus;
 @Service
 public class UserServiceImpl implements UserService {
 
-    private final UserRepository userRepository;
+    @Autowired
+    private UserRepository userRepository;
 
     @Autowired
-    public UserServiceImpl(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
+    private PasswordEncoder passwordEncoder;
+
 
     @Override
     public UserResponse getCurrentUser() {
@@ -53,5 +58,61 @@ public class UserServiceImpl implements UserService {
                 user.getName(),
                 user.getPhone()
         );
+    }
+
+    @Override
+    public UserResponse updateCurrentUser(UserUpdateRequest request) {
+        // Отримуємо email авторизованого юзера
+        String currentEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        // Валідація обов'язкового поля
+        if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.BAD_REQUEST, "Email cannot be empty"
+            );
+        }
+
+        // Перевірка унікальності нового email (якщо він відрізняється від поточного)
+        if (!currentEmail.equals(request.getEmail()) && userRepository.existsByEmail(request.getEmail())) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.CONFLICT, "Email already taken"
+            );
+        }
+
+        // Шукаємо користувача в БД
+        User user = userRepository.findByEmail(currentEmail)
+                .orElseThrow(() -> new com.techstore.exception.ResourceNotFoundException("User not found"));
+
+        // Оновлюємо дані з DTO
+        user.setEmail(request.getEmail());
+        user.setName(request.getName());
+        user.setPhone(request.getPhone());
+
+        // Зберігаємо оновленого користувача в базу
+        User updatedUser = userRepository.save(user);
+
+        // Повертаємо ваш оригінальний UserResponse(email, name, phone)
+        return new UserResponse(updatedUser.getEmail(), updatedUser.getName(), updatedUser.getPhone());
+    }
+
+    @Override
+    public void changePassword(String email, ChangePasswordRequest request) {
+        // 1. Пошук користувача в БД
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Користувача не знайдено"));
+
+        // 2. Валідація: Перевірка відповідності new password = confirm password (Помилка 400)
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            throw new IllegalArgumentException("Новий пароль та підтвердження не збігаються");
+        }
+
+        // 3. Безпека: Перевірка current password через BCrypt match (Помилка 401)
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+            throw new BadCredentialsException("Невірний поточний пароль");
+        }
+
+        // 4. Хешування нового пароля та оновлення в БД
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
     }
 }

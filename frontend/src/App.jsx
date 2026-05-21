@@ -5,6 +5,7 @@ import Header from './components/Header';
 import ProtectedRoute from './components/ProtectedRoute';
 import Profile from './components/Profile';
 import ProductList from './components/ProductList';
+import ProductPage from './components/ProductPage';
 
 function App() {
   return (
@@ -51,15 +52,13 @@ function App() {
               } 
             />
 
-            <Route 
-              path="/products/:id" 
-              element={
-                <ProtectedRoute>
-                  <div className="p-20 text-center text-gray-400 italic">
-                    Сторінка окремого товару
-                  </div>
-                </ProtectedRoute>
-              } 
+            <Route
+                path="/products/:id"
+                element={
+                  <ProtectedRoute>
+                    <ProductPage />
+                  </ProtectedRoute>
+                }
             />
             
             <Route path="*" element={<div className="p-20 text-center">Сторінку не знайдено</div>} />
