@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom'; // Додано для читання URL
 import axiosInstance from '../api/axios';
 import ProductCard from './ProductCard';
 
@@ -9,6 +10,24 @@ const ProductList = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Витягуємо параметр пошуку з URL
+  const [searchParams] = useSearchParams();
+  const searchQuery = searchParams.get('search') || '';
+  
+  // Стан для Debounce (затримки перед запитом)
+  const [debouncedSearch, setDebouncedSearch] = useState(searchQuery);
+
+  // Логіка Debounce
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      // Важливо: при новому пошуку скидаємо сторінку на 1-шу
+      setCurrentPage(0); 
+    }, 500); // Затримка півсекунди
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   const fetchProducts = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -16,11 +35,12 @@ const ProductList = () => {
       const response = await axiosInstance.get(`/api/products`, {
         params: {
           page: currentPage,
-          size: 16 // Кількість товарів на сторінці
+          size: 16,
+          // Передаємо параметр search, тільки якщо він не порожній
+          ...(debouncedSearch && { search: debouncedSearch })
         }
       });
       
-      // Обробка відповіді від Spring Data Page
       setProducts(response.data.content || []);
       setTotalPages(response.data.totalPages || 1);
     } catch (err) {
@@ -29,9 +49,8 @@ const ProductList = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [currentPage]);
+  }, [currentPage, debouncedSearch]); // Додали debouncedSearch у залежності
 
-  // Викликаємо завантаження при зміні сторінки
   useEffect(() => {
     fetchProducts();
   }, [fetchProducts]);
@@ -46,7 +65,7 @@ const ProductList = () => {
             <p className="text-gray-400">Знайдіть найкращу техніку для ваших потреб</p>
           </div>
           <div className="text-sm text-gray-400 font-medium bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-50">
-            Сторінка {currentPage + 1} з {totalPages}
+            Сторінка {totalPages > 0 ? currentPage + 1 : 0} з {totalPages}
           </div>
         </div>
 
@@ -70,7 +89,12 @@ const ProductList = () => {
         ) : products.length === 0 ? (
           <div className="bg-white p-20 rounded-xl text-center border border-gray-50">
             <div className="text-6xl mb-4 opacity-20">📦</div>
-            <p className="text-gray-400 text-lg italic">На жаль, товарів поки що немає...</p>
+            {/* Оновлений текст порожнього стану для пошуку */}
+            <p className="text-gray-400 text-lg italic">
+              {debouncedSearch 
+                ? `На жаль, за запитом "${debouncedSearch}" нічого не знайдено.` 
+                : 'На жаль, товарів поки що немає...'}
+            </p>
           </div>
         ) : (
           <>
