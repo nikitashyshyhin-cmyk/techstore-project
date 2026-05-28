@@ -25,19 +25,44 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public Page<ProductResponse> getProducts(
             String search,
+            Long categoryId,
             Pageable pageable
     ) {
 
         Page<Product> products;
 
-        if (search == null || search.trim().isEmpty()) {
+        boolean hasSearch =
+                search != null &&
+                !search.trim().isEmpty();
 
-            products = productRepository.findAll(pageable);
+        boolean hasCategory =
+                categoryId != null;
+
+        if (hasSearch && hasCategory) {
+
+            products = productRepository.fullTextSearchByCategory(
+                    search,
+                    categoryId,
+                    pageable
+            );
+
+        } else if (hasSearch) {
+
+            products = productRepository.fullTextSearch(
+                    search,
+                    pageable
+            );
+
+        } else if (hasCategory) {
+
+            products = productRepository.findByCategories_Id(
+                    categoryId,
+                    pageable
+            );
 
         } else {
 
-            products = productRepository
-                    .findByNameContainingIgnoreCase(search, pageable);
+            products = productRepository.findAll(pageable);
         }
 
         return products.map(this::mapToResponse);
