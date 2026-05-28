@@ -1,7 +1,10 @@
 package com.techstore.entity;
 
 import jakarta.persistence.*;
+
 import java.math.BigDecimal;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "products")
@@ -23,7 +26,15 @@ public class Product {
     @Column(name = "image_url")
     private String imageUrl;
 
-    // getters & setters
+    @ManyToMany
+    @JoinTable(
+            name = "product_categories",
+            joinColumns = @JoinColumn(name = "product_id"),
+            inverseJoinColumns = @JoinColumn(name = "category_id")
+    )
+    private Set<Category> categories = new HashSet<>();
+
+    // getters
 
     public Long getId() {
         return id;
@@ -45,6 +56,12 @@ public class Product {
         return imageUrl;
     }
 
+    public Set<Category> getCategories() {
+        return categories;
+    }
+
+    // setters
+
     public void setId(Long id) {
         this.id = id;
     }
@@ -63,5 +80,9 @@ public class Product {
 
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
+    }
+
+    public void setCategories(Set<Category> categories) {
+        this.categories = categories;
     }
 }
