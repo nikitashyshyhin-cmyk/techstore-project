@@ -1,6 +1,7 @@
 package com.techstore.dto;
 
 import java.math.BigDecimal;
+import java.util.Set;
 
 public class ProductResponse {
 
@@ -9,13 +10,16 @@ public class ProductResponse {
     private BigDecimal price;
     private String shortDescription;
     private String imageUrl;
+    private Set<CategoryResponse> categories;
 
-    public ProductResponse(Long id, String name, BigDecimal price, String shortDescription, String imageUrl) {
+    public ProductResponse(Long id, String name, BigDecimal price, String shortDescription, String imageUrl,
+            Set<CategoryResponse> categories) {
         this.id = id;
         this.name = name;
         this.price = price;
         this.shortDescription = shortDescription;
         this.imageUrl = imageUrl;
+        this.categories = categories;
     }
 
     // getters
