@@ -28,30 +28,31 @@ import tabletIcon from '../assets/tablet.svg';
 import tvIcon from '../assets/tv.svg';
 import wifiIcon from '../assets/wifi.svg';
 
-// 2. Словник мапінгу ID категорії на іконку
+// 2. Словник мапінгу НАЗВ категорій на іконки
 const categoryIcons = {
-  1: laptopIcon,
-  2: smartphoneIcon,
-  3: desktopIcon,
-  4: tabletIcon,
-  5: headphonesIcon,
-  6: gameControllerIcon,
-  7: tvIcon,
-  8: wifiIcon,
-  9: cpuIcon,
-  10: fanIcon,
-  11: graphicCardIcon,
-  12: hardDiskIcon,
-  13: keyboardIcon,
-  14: microphoneIcon,
-  15: monitorIcon,
-  16: motherboardIcon,
-  17: mouseIcon,
-  18: powerSupplyIcon,
-  19: ramIcon,
-  20: speakerIcon,
-  21: ssdIcon,
-  default: otherIcon
+  'Ноутбуки': laptopIcon,
+  'Смартфони': smartphoneIcon,
+  'ПК': desktopIcon,
+  'Планшети': tabletIcon,
+  'Навушники': headphonesIcon,
+  'Геймпади': gameControllerIcon,
+  'Телевізори': tvIcon,
+  'Мережеве обладнання': wifiIcon,
+  'Процесори': cpuIcon,
+  'Охолодження': fanIcon,
+  'Відеокарти': graphicCardIcon,
+  'Жорсткі диски': hardDiskIcon,
+  'Клавіатури': keyboardIcon,
+  'Мікрофони': microphoneIcon,
+  'Монітори': monitorIcon,
+  'Материнські плати': motherboardIcon,
+  'Мишки': mouseIcon,
+  'Блоки живлення': powerSupplyIcon,
+  'Оперативна памʼять': ramIcon,
+  'Колонки': speakerIcon,
+  'SSD': ssdIcon,
+  'Комплектуючі': motherboardIcon,
+  'Периферія': keyboardIcon
 };
 
 // 3. Компонент CSS-маски для динамічного перефарбовування іконок
@@ -196,7 +197,7 @@ const ProductList = () => {
                   
                   {categories.map((category) => {
                     const isActive = selectedCategory === category.id;
-                    const iconSrc = categoryIcons[category.id] || categoryIcons.default;
+                    const iconSrc = categoryIcons[category.name] || otherIcon;
                     
                     return (
                       <button
