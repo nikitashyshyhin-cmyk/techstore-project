@@ -33,14 +33,10 @@ public class ProductServiceImpl implements ProductService {
             Pageable pageable
     ) {
 
+        boolean hasSearch = search != null && !search.trim().isEmpty();
+        boolean hasCategory = categoryId != null;
+
         Page<Product> products;
-
-        boolean hasSearch =
-                search != null &&
-                !search.trim().isEmpty();
-
-        boolean hasCategory =
-                categoryId != null;
 
         if (hasSearch && hasCategory) {
 
@@ -59,20 +55,12 @@ public class ProductServiceImpl implements ProductService {
 
         } else if (hasCategory) {
 
-            products = productRepository.findByCategories_Id(
+            products = productRepository.findByCategory(
                     categoryId,
                     pageable
             );
 
-            products = productRepository
-                    .findByNameContainingIgnoreCase(
-                            search,
-                            pageable
-                    );
-
-        }
-        // Тільки категорія
-        else if (hasCategory) {
+        } else {
 
             products = productRepository.findAll(pageable);
         }
