@@ -35,22 +35,34 @@ public class ProductServiceImpl implements ProductService {
 
         Page<Product> products;
 
-        boolean hasSearch = search != null && !search.trim().isEmpty();
-        boolean hasCategory = categoryId != null;
+        boolean hasSearch =
+                search != null &&
+                !search.trim().isEmpty();
 
-        // Пошук + категорія
+        boolean hasCategory =
+                categoryId != null;
+
         if (hasSearch && hasCategory) {
 
-            products = productRepository
-                    .findByNameContainingIgnoreCaseAndCategories_Id(
-                            search,
-                            categoryId,
-                            pageable
-                    );
+            products = productRepository.fullTextSearchByCategory(
+                    search,
+                    categoryId,
+                    pageable
+            );
 
-        }
-        // Тільки пошук
-        else if (hasSearch) {
+        } else if (hasSearch) {
+
+            products = productRepository.fullTextSearch(
+                    search,
+                    pageable
+            );
+
+        } else if (hasCategory) {
+
+            products = productRepository.findByCategories_Id(
+                    categoryId,
+                    pageable
+            );
 
             products = productRepository
                     .findByNameContainingIgnoreCase(
@@ -61,16 +73,6 @@ public class ProductServiceImpl implements ProductService {
         }
         // Тільки категорія
         else if (hasCategory) {
-
-            products = productRepository
-                    .findByCategories_Id(
-                            categoryId,
-                            pageable
-                    );
-
-        }
-        // Без фільтрів
-        else {
 
             products = productRepository.findAll(pageable);
         }

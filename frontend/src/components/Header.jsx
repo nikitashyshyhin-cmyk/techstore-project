@@ -49,7 +49,7 @@ const Header = () => {
         </div>
         <input
           type="text"
-          placeholder="Пошук товарів..."
+          placeholder="Пошук товарів за назвою чи описом..."
           value={searchValue}
           onChange={handleSearchChange}
           className="w-full pl-11 pr-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm font-medium focus:outline-none focus:border-[#4B32B1] focus:ring-1 focus:ring-[#4B32B1]/20 transition-all shadow-sm text-gray-700 placeholder-gray-400"
