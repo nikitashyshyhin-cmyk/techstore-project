@@ -1,8 +1,10 @@
 package com.techstore.service.impl;
 
 import com.techstore.dto.AddToCartRequest;
+import com.techstore.dto.CartItemDto;
 import com.techstore.dto.CartItemResponse;
 
+import com.techstore.dto.CartResponse;
 import com.techstore.entity.CartItem;
 import com.techstore.entity.Product;
 import com.techstore.entity.User;
@@ -17,6 +19,10 @@ import com.techstore.service.CartService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class CartServiceImpl implements CartService {
@@ -98,5 +104,38 @@ public class CartServiceImpl implements CartService {
                 product.getName(),
                 cartItem.getQuantity()
         );
+    }
+
+    @Override
+    public CartResponse getCart(Long userId) {
+        List<CartItem> cartItems = cartItemRepository.findByUser_Id(userId);
+
+        List<CartItemDto> itemDtos = new ArrayList<>();
+        BigDecimal totalCartPrice = BigDecimal.ZERO;
+
+        for (CartItem item : cartItems) {
+            CartItemDto dto = new CartItemDto();
+            dto.setProductId(item.getProduct().getId());
+            dto.setName(item.getProduct().getName());
+            dto.setPrice(item.getProduct().getPrice());
+            dto.setImageUrl(item.getProduct().getImageUrl());
+            dto.setQuantity(item.getQuantity());
+
+            // Розрахунок subtotal: ціна * кількість
+            BigDecimal subtotal = item.getProduct().getPrice()
+                    .multiply(BigDecimal.valueOf(item.getQuantity()));
+            dto.setSubtotal(subtotal);
+
+            itemDtos.add(dto);
+
+            // Додаємо subtotal до загальної суми кошика
+            totalCartPrice = totalCartPrice.add(subtotal);
+        }
+
+        CartResponse response = new CartResponse();
+        response.setItems(itemDtos);
+        response.setTotalCartPrice(totalCartPrice);
+
+        return response;
     }
 }
