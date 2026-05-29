@@ -35,15 +35,27 @@ public class GlobalExceptionHandler {
         );
     }
 
-    @ExceptionHandler(RuntimeException.class)
+    @ExceptionHandler(UnauthorizedException.class)
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public Map<String, String> handleUnauthorized(
-            RuntimeException ex
+            UnauthorizedException ex
     ) {
 
         return Map.of(
                 "error",
                 ex.getMessage()
+        );
+    }
+
+    @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public Map<String, String> handleGeneralException(
+            Exception ex
+    ) {
+
+        return Map.of(
+                "error",
+                "Internal server error"
         );
     }
 }

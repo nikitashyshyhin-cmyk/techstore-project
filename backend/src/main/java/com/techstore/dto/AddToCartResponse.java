@@ -1,6 +1,6 @@
 package com.techstore.dto;
 
-public class CartItemResponse {
+public class AddToCartResponse {
 
     private Long productId;
 
@@ -8,7 +8,7 @@ public class CartItemResponse {
 
     private Integer quantity;
 
-    public CartItemResponse(
+    public AddToCartResponse(
             Long productId,
             String productName,
             Integer quantity

@@ -1,12 +1,12 @@
 package com.techstore.service;
 
 import com.techstore.dto.AddToCartRequest;
-import com.techstore.dto.CartItemResponse;
+import com.techstore.dto.AddToCartResponse;
 import com.techstore.dto.CartResponse;
 
 public interface CartService {
 
-    CartItemResponse addToCart(
+    AddToCartResponse addToCart(
             Long userId,
             AddToCartRequest request
     );

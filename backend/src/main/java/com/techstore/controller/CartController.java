@@ -1,9 +1,12 @@
 package com.techstore.controller;
 
 import com.techstore.dto.AddToCartRequest;
-import com.techstore.dto.CartItemResponse;
-import com.techstore.service.CartService;
+import com.techstore.dto.AddToCartResponse;
 import com.techstore.dto.CartResponse;
+
+import com.techstore.exception.UnauthorizedException;
+
+import com.techstore.service.CartService;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -25,7 +28,7 @@ public class CartController {
     }
 
     @PostMapping("/items")
-    public CartItemResponse addToCart(
+    public AddToCartResponse addToCart(
             @RequestBody AddToCartRequest request,
             HttpServletRequest httpRequest
     ) {
@@ -39,8 +42,12 @@ public class CartController {
     }
 
     @GetMapping
-    public CartResponse getCart(HttpServletRequest httpRequest) {
+    public CartResponse getCart(
+            HttpServletRequest httpRequest
+    ) {
+
         Long userId = extractUserId(httpRequest);
+
         return cartService.getCart(userId);
     }
 
@@ -51,13 +58,25 @@ public class CartController {
         String userIdHeader =
                 request.getHeader("X-User-Id");
 
-        if (userIdHeader == null) {
+        if (
+                userIdHeader == null ||
+                userIdHeader.isBlank()
+        ) {
 
-            throw new RuntimeException(
-                    "Unauthorized"
+            throw new UnauthorizedException(
+                    "Missing X-User-Id header"
             );
         }
 
-        return Long.parseLong(userIdHeader);
+        try {
+
+            return Long.parseLong(userIdHeader);
+
+        } catch (NumberFormatException ex) {
+
+            throw new UnauthorizedException(
+                    "Invalid X-User-Id header"
+            );
+        }
     }
 }
