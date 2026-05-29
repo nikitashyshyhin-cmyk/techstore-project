@@ -77,7 +77,7 @@ const Cart = () => {
             {cartItems.map((item) => {
 				const itemSubtotal = item.subtotal;
               return (
-                <div key={item.id} className="bg-white p-5 rounded-md shadow-sm border border-gray-200 flex flex-col sm:flex-row items-center gap-6 transition-all hover:shadow-md">
+                <div key={item.productId} className="bg-white p-5 rounded-md shadow-sm border border-gray-200 flex flex-col sm:flex-row items-center gap-6 transition-all hover:shadow-md">
                   <div className="w-20 h-20 bg-gray-50 rounded-md border border-gray-100 flex items-center justify-center flex-shrink-0 text-gray-300">
                     <svg width="28" height="28" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
                   </div>
