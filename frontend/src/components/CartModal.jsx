@@ -75,15 +75,15 @@ const CartModal = ({ isOpen, onClose }) => {
           ) : (
             <div className="space-y-4">
               {cartItems.map((item) => {
-                const itemSubtotal = item.subtotal !== undefined ? item.subtotal : (item.product?.price ? item.product.price * item.quantity : null);
+                const itemSubtotal = item.subtotal;
                 return (
                   <div key={item.id} className="bg-white p-4 rounded-md shadow-sm border border-gray-200 flex flex-col sm:flex-row items-center gap-4">
                     <div className="w-16 h-16 bg-gray-50 rounded-md border border-gray-100 flex items-center justify-center flex-shrink-0 text-gray-300">
                       <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>
                     </div>
                     <div className="flex-1 w-full text-center sm:text-left">
-                      <h3 className="font-semibold text-gray-700 hover:text-[#4B32B1] transition-colors line-clamp-1">{item.product?.name || 'Невідомий товар'}</h3>
-                    </div>
+					<h3 className="font-semibold text-gray-700 hover:text-[#4B32B1] transition-colors line-clamp-1">{item.name}</h3>
+					</div>
                     <div className="flex flex-col items-center sm:items-start min-w-[80px]">
                       <span className="text-[10px] text-gray-400 uppercase tracking-wider font-bold mb-1">Кількість</span>
                       <div className="text-gray-700 font-medium">{item.quantity} шт.</div>

@@ -33,17 +33,33 @@ const ProductPage = () => {
         fetchProduct();
     }, [id]);
 
-    const handleAddToCart = async () => {
-        setIsAddingToCart(true);
-        try {
-            await axiosInstance.post('/api/cart/items', { productId: product.id });
-            setIsModalOpen(true);
-        } catch (err) {
-            alert('Виникла помилка при додаванні товару в кошик');
-        } finally {
-            setIsAddingToCart(false);
-        }
-    };
+	const handleAddToCart = async () => {
+
+	    setIsAddingToCart(true);
+
+	    try {
+
+	        await axiosInstance.post('/api/cart/items', {
+	            productId: product.id,
+	            quantity: 1
+	        });
+
+	        setIsModalOpen(true);
+
+	    } catch (err) {
+
+	        if (err.response?.status === 401) {
+	            alert('Увійдіть в акаунт для додавання товарів у кошик');
+	        } else {
+	            alert('Виникла помилка при додаванні товару в кошик');
+	        }
+
+	    } finally {
+
+	        setIsAddingToCart(false);
+	    }
+	};
+
 
     if (loading) return <div className="p-20 text-center text-xl text-[#4B32B1]">Завантаження...</div>;
     if (error) return <div className="p-20 text-center text-red-500 text-2xl font-bold">{error}</div>;

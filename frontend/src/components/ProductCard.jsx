@@ -9,13 +9,27 @@ const ProductCard = ({ product }) => {
 
   const handleAddToCart = async (e) => {
     e.stopPropagation();
+
     try {
-      await axiosInstance.post('/api/cart/items', { productId: product.id });
+      await axiosInstance.post('/api/cart/items', {
+        productId: product.id,
+        quantity: 1
+      });
+
       setIsModalOpen(true);
+
     } catch (error) {
+
+      if (error.response?.status === 401) {
+        alert('Увійдіть в акаунт для додавання товарів у кошик');
+        return;
+      }
+
       alert('Виникла помилка при додаванні товару в кошик');
     }
   };
+  
+
 
   return (
     <>
