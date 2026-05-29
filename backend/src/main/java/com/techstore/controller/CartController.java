@@ -3,6 +3,7 @@ package com.techstore.controller;
 import com.techstore.dto.AddToCartRequest;
 import com.techstore.dto.CartItemResponse;
 import com.techstore.service.CartService;
+import com.techstore.dto.CartResponse;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -35,6 +36,12 @@ public class CartController {
                 userId,
                 request
         );
+    }
+
+    @GetMapping
+    public CartResponse getCart(HttpServletRequest httpRequest) {
+        Long userId = extractUserId(httpRequest);
+        return cartService.getCart(userId);
     }
 
     private Long extractUserId(
