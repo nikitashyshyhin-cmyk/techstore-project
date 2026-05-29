@@ -52,6 +52,8 @@ public class SecurityConfig {
 
                 // profile тільки з JWT
                 .requestMatchers("/api/users/me").authenticated()
+                // CART тепер захищений JWT
+                .requestMatchers("/api/cart/**").authenticated()
 
                 // все інше
                 .anyRequest().authenticated()

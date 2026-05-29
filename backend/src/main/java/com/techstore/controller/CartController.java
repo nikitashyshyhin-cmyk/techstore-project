@@ -3,14 +3,12 @@ package com.techstore.controller;
 import com.techstore.dto.AddToCartRequest;
 import com.techstore.dto.AddToCartResponse;
 import com.techstore.dto.CartResponse;
-
+import com.techstore.entity.User;
 import com.techstore.exception.UnauthorizedException;
-
+import com.techstore.repository.UserRepository;
 import com.techstore.service.CartService;
 
-import jakarta.servlet.http.HttpServletRequest;
-
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -19,64 +17,44 @@ import org.springframework.web.bind.annotation.*;
 public class CartController {
 
     private final CartService cartService;
+    private final UserRepository userRepository;
 
-    @Autowired
     public CartController(
-            CartService cartService
+            CartService cartService,
+            UserRepository userRepository
     ) {
         this.cartService = cartService;
+        this.userRepository = userRepository;
     }
 
     @PostMapping("/items")
     public AddToCartResponse addToCart(
             @RequestBody AddToCartRequest request,
-            HttpServletRequest httpRequest
+            Authentication authentication
     ) {
 
-        Long userId = extractUserId(httpRequest);
+        String email = authentication.getName();
 
-        return cartService.addToCart(
-                userId,
-                request
-        );
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new UnauthorizedException("User not found")
+                );
+
+        return cartService.addToCart(user.getId(), request);
     }
 
     @GetMapping
     public CartResponse getCart(
-            HttpServletRequest httpRequest
+            Authentication authentication
     ) {
 
-        Long userId = extractUserId(httpRequest);
+        String email = authentication.getName();
 
-        return cartService.getCart(userId);
-    }
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new UnauthorizedException("User not found")
+                );
 
-    private Long extractUserId(
-            HttpServletRequest request
-    ) {
-
-        String userIdHeader =
-                request.getHeader("X-User-Id");
-
-        if (
-                userIdHeader == null ||
-                userIdHeader.isBlank()
-        ) {
-
-            throw new UnauthorizedException(
-                    "Missing X-User-Id header"
-            );
-        }
-
-        try {
-
-            return Long.parseLong(userIdHeader);
-
-        } catch (NumberFormatException ex) {
-
-            throw new UnauthorizedException(
-                    "Invalid X-User-Id header"
-            );
-        }
+        return cartService.getCart(user.getId());
     }
 }
