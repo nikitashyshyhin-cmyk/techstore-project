@@ -69,7 +69,7 @@ const Checkout = () => {
       
       // Перенаправляємо на сторінку підтвердження (якщо бекенд повертає id під іншим ключем - використовуємо його)
       const finalOrderId = orderId || response.data.id || 'new';
-      navigate(`/order-success/${finalOrderId}`);
+      navigate(`/orders/${finalOrderId}/confirmation`);
       
     } catch (err) {
       console.error("Помилка створення замовлення:", err);
