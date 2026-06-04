@@ -8,7 +8,7 @@ import ProductList from './components/ProductList';
 import ProductPage from './components/ProductPage';
 import Cart from './components/Cart';
 import Checkout from './components/Checkout';
-
+import OrderSuccess from './components/OrderSuccess';
 
 function App() {
   return (
@@ -72,6 +72,7 @@ function App() {
 
             <Route path="/cart" element={<Cart />} />
             <Route path="/checkout" element={<Checkout />} />
+            <Route path="/order-success/:id" element={<OrderSuccess />} />
           </Routes>
         </main>
       </div>
