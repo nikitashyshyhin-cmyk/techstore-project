@@ -54,6 +54,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/users/me").authenticated()
                 // CART тепер захищений JWT
                 .requestMatchers("/api/cart/**").authenticated()
+                // CHECKOUT захищений JWT
+                .requestMatchers("/api/checkout/**").authenticated()
 
                 // все інше
                 .anyRequest().authenticated()
