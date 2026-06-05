@@ -107,10 +107,11 @@ public class OrderService {
         }
 
         return new OrderConfirmationResponse(
-                order.getId(),
                 order.getTotal(),
                 order.getStatus(),
-                order.getCreatedAt()
+                order.getCreatedAt(),
+                order.getDeliveryAddress(),
+                order.getPaymentMethod()
         );
     }
 }

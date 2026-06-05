@@ -5,32 +5,28 @@ import java.time.LocalDateTime;
 
 public class OrderConfirmationResponse {
 
-    private Long orderId;
     private BigDecimal total;
     private String status;
     private LocalDateTime createdAt;
+
+    private String deliveryAddress;
+    private String paymentMethod;
 
     public OrderConfirmationResponse() {
     }
 
     public OrderConfirmationResponse(
-            Long orderId,
             BigDecimal total,
             String status,
-            LocalDateTime createdAt
+            LocalDateTime createdAt,
+            String deliveryAddress,
+            String paymentMethod
     ) {
-        this.orderId = orderId;
         this.total = total;
         this.status = status;
         this.createdAt = createdAt;
-    }
-
-    public Long getOrderId() {
-        return orderId;
-    }
-
-    public void setOrderId(Long orderId) {
-        this.orderId = orderId;
+        this.deliveryAddress = deliveryAddress;
+        this.paymentMethod = paymentMethod;
     }
 
     public BigDecimal getTotal() {
@@ -55,5 +51,21 @@ public class OrderConfirmationResponse {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getDeliveryAddress() {
+        return deliveryAddress;
+    }
+
+    public void setDeliveryAddress(String deliveryAddress) {
+        this.deliveryAddress = deliveryAddress;
+    }
+
+    public String getPaymentMethod() {
+        return paymentMethod;
+    }
+
+    public void setPaymentMethod(String paymentMethod) {
+        this.paymentMethod = paymentMethod;
     }
 }

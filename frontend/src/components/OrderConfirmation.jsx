@@ -83,11 +83,6 @@ const OrderConfirmation = () => {
         {/* Картка з деталями замовлення */}
         <div className="bg-white rounded-md shadow-sm border border-gray-200 overflow-hidden mb-8">
           
-          <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 text-center sm:text-left">
-            <p className="text-sm text-gray-500 font-medium mb-1">Номер замовлення</p>
-            <p className="text-xl font-bold text-gray-800">#{order.id}</p>
-          </div>
-
           <div className="p-6">
             
             {/* БЛОК 1: Загальна інформація */}
@@ -101,6 +96,15 @@ const OrderConfirmation = () => {
                     })}
                   </p>
                 </div>
+				<div>
+				  <p className="text-sm text-gray-400 font-medium mb-1">
+				    Статус замовлення
+				  </p>
+
+				  <p className="text-green-600 font-semibold">
+				    {order.status === 'NEW' ? 'Прийняте' : order.status}
+				  </p>
+				</div>
                 <div className="md:text-right">
                   <p className="text-sm text-gray-400 font-medium mb-1">Спосіб оплати</p>
                   <p className="text-gray-800 font-medium">
