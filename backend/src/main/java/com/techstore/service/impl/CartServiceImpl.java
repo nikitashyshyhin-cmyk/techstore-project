@@ -18,6 +18,7 @@ import com.techstore.repository.UserRepository;
 
 import com.techstore.service.CartService;
 
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -190,5 +191,13 @@ public class CartServiceImpl implements CartService {
                     "Quantity must be at least 1"
             );
         }
+    }
+
+    @Override
+    @Transactional
+    public void clearCart(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Користувача не знайдено"));
+        cartItemRepository.deleteByUserId(user.getId());
     }
 }

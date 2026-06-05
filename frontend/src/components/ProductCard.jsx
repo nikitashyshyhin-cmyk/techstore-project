@@ -57,15 +57,15 @@ const ProductCard = ({ product }) => {
             <span className="text-[#4B32B1] font-bold text-lg">
               {product.price} ₴
             </span>
-            <button 
-              onClick={handleAddToCart}
-              title="Додати в кошик"
-              className="text-[#4B32B1] p-2 rounded-md opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0 hover:bg-[#E5E0FF]"
-            >
-              <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
-            </button>
+              <button 
+                onClick={handleAddToCart}
+                title="Додати в кошик"
+                className="text-[#4B32B1] p-2 rounded-md transition-colors hover:bg-[#E5E0FF]"
+              >
+                <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </button>
           </div>
         </div>
       </div>
