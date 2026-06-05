@@ -15,6 +15,9 @@ import com.techstore.repository.ProductRepository;
 import com.techstore.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.techstore.dto.OrderConfirmationResponse;
+import org.springframework.security.access.AccessDeniedException;
+
 
 @Service
 public class OrderService {
@@ -79,5 +82,35 @@ public class OrderService {
         cartService.clearCart(email);
 
         return new CreateOrderResponse(savedOrder.getId(), savedOrder.getTotal(), savedOrder.getStatus());
+    }
+    
+    @Transactional(readOnly = true)
+    public OrderConfirmationResponse getOrderConfirmation(
+            String email,
+            Long orderId
+    ) {
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Користувача не знайдено")
+                );
+
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Замовлення не знайдено")
+                );
+
+        if (!order.getUser().getId().equals(user.getId())) {
+            throw new AccessDeniedException(
+                    "Доступ до чужого замовлення заборонений"
+            );
+        }
+
+        return new OrderConfirmationResponse(
+                order.getId(),
+                order.getTotal(),
+                order.getStatus(),
+                order.getCreatedAt()
+        );
     }
 }
