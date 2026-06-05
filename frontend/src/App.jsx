@@ -6,12 +6,19 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Profile from './components/Profile';
 import ProductList from './components/ProductList';
 import ProductPage from './components/ProductPage';
+import Cart from './components/Cart';
+import Checkout from './components/Checkout';
+import OrderConfirmation from './components/OrderConfirmation';
 
 function App() {
   return (
     <Router>
       <div className="min-h-screen bg-gray-50 flex flex-col">
         <Header />
+
+
+
+
         <main className="flex-1">
           <Routes>
             {/* Головна сторінка */}
@@ -62,6 +69,10 @@ function App() {
             />
             
             <Route path="*" element={<div className="p-20 text-center">Сторінку не знайдено</div>} />
+
+            <Route path="/cart" element={<Cart />} />
+            <Route path="/checkout" element={<Checkout />} />
+            <Route path="/orders/:id/confirmation" element={<OrderConfirmation />} />
           </Routes>
         </main>
       </div>

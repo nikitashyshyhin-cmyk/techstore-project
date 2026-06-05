@@ -10,8 +10,9 @@ public interface ProductService {
 
     Page<ProductResponse> getProducts(
             String search,
+            Long categoryId,
             Pageable pageable
     );
-    ProductDetailResponse getProductById(Long id);
 
+    ProductDetailResponse getProductById(Long id);
 }

@@ -30,3 +30,10 @@ Body:
   "email": "test@test.com",
   "password": "123456"
 }
+
+Для роботи Full-Text Search необхідно, щоб у таблиці `products` був створений FULLTEXT INDEX.
+
+Якщо індекс не створився автоматично, виконайте:
+
+ALTER TABLE products
+ADD FULLTEXT INDEX ft_products_name_description (name, description);

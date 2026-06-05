@@ -28,6 +28,8 @@ public class ProductController {
 
             @RequestParam(required = false) String search,
 
+            @RequestParam(required = false) Long categoryId,
+
             @RequestParam(defaultValue = "0") int page,
 
             @RequestParam(defaultValue = "10") int size
@@ -35,7 +37,11 @@ public class ProductController {
 
         Pageable pageable = PageRequest.of(page, size);
 
-        return productService.getProducts(search, pageable);
+        return productService.getProducts(
+                search,
+                categoryId,
+                pageable
+        );
     }
 
     @GetMapping("/{id}")
