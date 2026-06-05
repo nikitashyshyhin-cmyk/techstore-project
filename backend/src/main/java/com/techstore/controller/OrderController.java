@@ -6,6 +6,7 @@ import com.techstore.service.OrderService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import com.techstore.dto.OrderConfirmationResponse;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -25,5 +26,20 @@ public class OrderController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+    
+    @GetMapping("/{id}")
+    public ResponseEntity<OrderConfirmationResponse> getOrderConfirmation(
+            @PathVariable Long id,
+            Authentication authentication
+    ) {
+
+        OrderConfirmationResponse response =
+                orderService.getOrderConfirmation(
+                        authentication.getName(),
+                        id
+                );
+
+        return ResponseEntity.ok(response);
     }
 }
