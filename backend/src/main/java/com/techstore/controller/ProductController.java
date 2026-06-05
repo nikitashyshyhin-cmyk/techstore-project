@@ -3,12 +3,15 @@ package com.techstore.controller;
 import com.techstore.dto.ProductDetailResponse;
 import com.techstore.dto.ProductResponse;
 import com.techstore.service.ProductService;
+import com.techstore.dto.PopularProductDto;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 
+import java.util.List;
 import org.springframework.web.bind.annotation.*;
 
 @CrossOrigin(origins = "http://localhost:5173")
@@ -47,5 +50,13 @@ public class ProductController {
     @GetMapping("/{id}")
     public ProductDetailResponse getProductById(@PathVariable Long id) {
         return productService.getProductById(id);
+    }
+    
+    @GetMapping("/popular")
+    public ResponseEntity<List<PopularProductDto>> getPopularProducts() {
+
+        return ResponseEntity.ok(
+                productService.getPopularProducts()
+        );
     }
 }
