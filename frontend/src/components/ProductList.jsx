@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import axiosInstance from '../api/axios';
 import ProductCard from './ProductCard';
 
-// 1. Імпорт усіх іконок з папки assets
+// Імпорт усіх іконок
 import allIcon from '../assets/all.svg';
 import cpuIcon from '../assets/cpu.svg';
 import desktopIcon from '../assets/desktop.svg';
@@ -28,7 +28,6 @@ import tabletIcon from '../assets/tablet.svg';
 import tvIcon from '../assets/tv.svg';
 import wifiIcon from '../assets/wifi.svg';
 
-// 2. Словник мапінгу НАЗВ категорій на іконки
 const categoryIcons = {
   'Ноутбуки': laptopIcon,
   'Смартфони': smartphoneIcon,
@@ -55,7 +54,6 @@ const categoryIcons = {
   'Периферія': keyboardIcon
 };
 
-// 3. Компонент CSS-маски для динамічного перефарбовування іконок
 const IconMask = ({ src, isActive }) => (
   <div
     className={`w-5 h-5 flex-shrink-0 transition-colors duration-200 ${
@@ -81,7 +79,10 @@ const ProductList = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Категорії
+  // СТАНИ ДЛЯ ПОПУЛЯРНИХ ТОВАРІВ
+  const [popularProducts, setPopularProducts] = useState([]);
+  const [isPopularLoading, setIsPopularLoading] = useState(false);
+
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [isCategoriesLoading, setIsCategoriesLoading] = useState(true);
@@ -99,7 +100,6 @@ const ProductList = () => {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Завантаження категорій
   useEffect(() => {
     const fetchCategories = async () => {
       setIsCategoriesLoading(true);
@@ -115,6 +115,25 @@ const ProductList = () => {
       }
     };
     fetchCategories();
+  }, []);
+
+  // ЗАВАНТАЖЕННЯ ПОПУЛЯРНИХ ТОВАРІВ 
+  useEffect(() => {
+    const fetchPopularProducts = async () => {
+      setIsPopularLoading(true);
+      try {
+        const response = await axiosInstance.get('/api/products/popular');
+        const items = response.data?.content || response.data || [];
+        setPopularProducts(Array.isArray(items) ? items.slice(0, 4) : []);
+      } catch (err) {
+        console.error("API Error fetching popular products:", err);
+        // Якщо помилка, просто залишаємо порожній масив, щоб блок не відображався і не псував UX
+        setPopularProducts([]);
+      } finally {
+        setIsPopularLoading(false);
+      }
+    };
+    fetchPopularProducts();
   }, []);
 
   const handleCategorySelect = (categoryId) => {
@@ -149,11 +168,13 @@ const ProductList = () => {
     fetchProducts();
   }, [fetchProducts]);
 
+  // Умова показу популярних товарів
+  const showPopularSection = selectedCategory === null && !debouncedSearch && currentPage === 0;
+
   return (
     <div className="min-h-screen bg-gray-50 p-6 md:p-8">
       <div className="max-w-[1400px] mx-auto">
         
-        {/* Хедер каталогу */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 px-2 gap-4">
           <div>
             <h1 className="text-3xl font-bold text-gray-800 mb-1">Каталог товарів</h1>
@@ -166,7 +187,6 @@ const ProductList = () => {
 
         <div className="flex flex-col md:flex-row gap-6">
           
-          {/* SIDEBAR (Категорії) */}
           <div className="w-full md:w-[260px] flex-shrink-0">
             <div className="bg-white p-3 rounded-md shadow-sm border border-gray-200 sticky top-24 max-h-[calc(100vh-120px)] overflow-y-auto hide-scrollbar">
               <h2 className="text-sm uppercase tracking-wider font-bold text-gray-400 mb-3 text-center border-b border-gray-100 pb-2">Категорії</h2>
@@ -219,8 +239,47 @@ const ProductList = () => {
             </div>
           </div>
 
-          {/* КОНТЕНТ (Товари в 4 рядка) */}
           <div className="flex-1 overflow-hidden">
+            
+            {/* БЛОК ПОПУЛЯРНИХ ТОВАРІВ */}
+            {showPopularSection && (isPopularLoading || popularProducts.length > 0) && (
+              <>
+                <div className="mb-8 relative bg-gradient-to-b from-[#F3F0FF] to-transparent pt-6 pb-4 px-4 sm:px-6 rounded-xl border border-[#E5E0FF]/50 shadow-sm">
+                  
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-[#4B32B1] opacity-[0.04] rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none"></div>
+
+                  <div className="flex items-center mb-8 relative z-10">
+                    <div className="flex-grow border-t border-[#4B32B1]/10"></div>
+                    <span className="mx-4 bg-white text-[#4B32B1] px-5 py-2 rounded-lg text-sm font-bold uppercase tracking-wider shadow-sm border border-[#E5E0FF] flex items-center gap-2">
+                      <span className="text-lg">🔥</span> Популярні товари
+                    </span>
+                    <div className="flex-grow border-t border-[#4B32B1]/10"></div>
+                  </div>
+
+                  {isPopularLoading ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                      {[...Array(4)].map((_, i) => (
+                        <div key={`pop-skel-${i}`} className="bg-white rounded-xl h-[360px] animate-pulse border border-gray-100 shadow-sm"></div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 relative z-10">
+                      {popularProducts.map(product => (
+                        <ProductCard key={`pop-${product.id}`} product={product} />
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex items-center mt-2 mb-8">
+                  <div className="flex-grow border-t border-gray-200"></div>
+                  <span className="mx-4 text-sm font-bold text-gray-400 uppercase tracking-wider">Всі товари</span>
+                  <div className="flex-grow border-t border-gray-200"></div>
+                </div>
+              </>
+            )}
+
+            {/* ОСНОВНИЙ СПИСОК ТОВАРІВ */}
             {isLoading ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {[...Array(8)].map((_, i) => (
@@ -251,7 +310,7 @@ const ProductList = () => {
               <>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-10">
                   {products.map(product => (
-                    <ProductCard key={product.id} product={product} />
+                    <ProductCard key={`main-${product.id}`} product={product} />
                   ))}
                 </div>
 
