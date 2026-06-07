@@ -26,4 +26,7 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
     List<PopularProductDto> findPopularProducts(
             LocalDateTime weekAgo
     );
+    List<OrderItem> findByOrder_Id(
+            Long orderId
+    );
 }
