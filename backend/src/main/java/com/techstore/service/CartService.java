@@ -14,4 +14,9 @@ public interface CartService {
     CartResponse getCart(Long userId);
 
     void clearCart(String email);
+    
+    CartResponse removeCartItem(
+            Long userId,
+            Long cartItemId
+    );
 }

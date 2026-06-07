@@ -57,4 +57,28 @@ public class CartController {
 
         return cartService.getCart(user.getId());
     }
+    
+    @DeleteMapping("/items/{id}")
+    public CartResponse removeCartItem(
+            @PathVariable Long id,
+            Authentication authentication
+    ) {
+
+        String email =
+                authentication.getName();
+
+        User user =
+                userRepository
+                        .findByEmail(email)
+                        .orElseThrow(() ->
+                                new UnauthorizedException(
+                                        "User not found"
+                                )
+                        );
+
+        return cartService.removeCartItem(
+                user.getId(),
+                id
+        );
+    }
 }
