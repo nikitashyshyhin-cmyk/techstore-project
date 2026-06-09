@@ -7,6 +7,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import com.techstore.dto.OrderConfirmationResponse;
+import com.techstore.dto.OrderHistoryDto;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -41,5 +44,18 @@ public class OrderController {
                 );
 
         return ResponseEntity.ok(response);
+    }
+    
+    @GetMapping
+    public ResponseEntity<List<OrderHistoryDto>>
+    getOrderHistory(
+            Authentication authentication
+    ) {
+
+        return ResponseEntity.ok(
+                orderService.getOrderHistory(
+                        authentication.getName()
+                )
+        );
     }
 }
