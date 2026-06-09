@@ -17,6 +17,8 @@ public class Order {
 
     private String deliveryAddress;
     private String paymentMethod;
+    @Enumerated(EnumType.STRING)
+    private DeliveryType deliveryType = DeliveryType.NOVA_POSHTA;
     private String comment;
     private BigDecimal total;
     @Enumerated(EnumType.STRING)
@@ -26,13 +28,13 @@ public class Order {
     public Order() {
     }
 
-    public Order(User user, String deliveryAddress, String paymentMethod, String comment, BigDecimal total) {
+    public Order(User user, DeliveryType deliveryType, String deliveryAddress, String paymentMethod, String comment, BigDecimal total) {
         this.user = user;
+        this.deliveryType = deliveryType;
         this.deliveryAddress = deliveryAddress;
         this.paymentMethod = paymentMethod;
         this.comment = comment;
         this.total = total;
-        this.status = OrderStatus.CREATED;
         this.createdAt = LocalDateTime.now();
     }
 
@@ -41,6 +43,9 @@ public class Order {
 
     public User getUser() { return user; }
     public void setUser(User user) { this.user = user; }
+
+    public DeliveryType getDeliveryType() { return deliveryType; }
+    public void setDeliveryType(DeliveryType deliveryType) { this.deliveryType = deliveryType; }
 
     public String getDeliveryAddress() { return deliveryAddress; }
     public void setDeliveryAddress(String deliveryAddress) { this.deliveryAddress = deliveryAddress; }
