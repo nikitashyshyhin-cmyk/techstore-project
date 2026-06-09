@@ -2,11 +2,12 @@ package com.techstore.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import com.techstore.entity.OrderStatus;
 
 public class OrderConfirmationResponse {
 
     private BigDecimal total;
-    private String status;
+    private OrderStatus status;
     private LocalDateTime createdAt;
 
     private String deliveryAddress;
@@ -17,7 +18,7 @@ public class OrderConfirmationResponse {
 
     public OrderConfirmationResponse(
             BigDecimal total,
-            String status,
+            OrderStatus status,
             LocalDateTime createdAt,
             String deliveryAddress,
             String paymentMethod
@@ -37,11 +38,11 @@ public class OrderConfirmationResponse {
         this.total = total;
     }
 
-    public String getStatus() {
+    public OrderStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(OrderStatus status) {
         this.status = status;
     }
 

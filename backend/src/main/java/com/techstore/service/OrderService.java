@@ -22,6 +22,7 @@ import java.util.List;
 import org.springframework.security.access.AccessDeniedException;
 import com.techstore.dto.OrderHistoryDto;
 import com.techstore.dto.OrderHistoryItemDto;
+import com.techstore.entity.OrderStatus;
 
 
 @Service
@@ -175,5 +176,15 @@ public class OrderService {
 
                 })
                 .toList();
+
+    }
+
+    @Transactional
+    public void updateOrderStatus(Long orderId, OrderStatus newStatus) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Замовлення не знайдено"));
+
+        order.setStatus(newStatus);
+        orderRepository.save(order);
     }
 }
