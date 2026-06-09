@@ -10,6 +10,7 @@ public class CartItemDto {
     private String imageUrl;
     private Integer quantity;
     private BigDecimal subtotal;
+    private Long id;
 
     public CartItemDto() {
     }
@@ -60,5 +61,13 @@ public class CartItemDto {
 
     public void setSubtotal(BigDecimal subtotal) {
         this.subtotal = subtotal;
+    }
+    
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 }
