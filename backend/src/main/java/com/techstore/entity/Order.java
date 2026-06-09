@@ -19,7 +19,8 @@ public class Order {
     private String paymentMethod;
     private String comment;
     private BigDecimal total;
-    private String status = "NEW";
+    @Enumerated(EnumType.STRING)
+    private OrderStatus status = OrderStatus.CREATED;
     private LocalDateTime createdAt = LocalDateTime.now();
 
     public Order() {
@@ -31,7 +32,7 @@ public class Order {
         this.paymentMethod = paymentMethod;
         this.comment = comment;
         this.total = total;
-        this.status = "NEW";
+        this.status = OrderStatus.CREATED;
         this.createdAt = LocalDateTime.now();
     }
 
@@ -53,8 +54,8 @@ public class Order {
     public BigDecimal getTotal() { return total; }
     public void setTotal(BigDecimal total) { this.total = total; }
 
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
+    public OrderStatus getStatus() { return status; }
+    public void setStatus(OrderStatus status) { this.status = status; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
