@@ -19,4 +19,10 @@ public interface CartService {
             Long userId,
             Long cartItemId
     );
+    
+    CartResponse updateCartItemQuantity(
+            Long userId,
+            Long cartItemId,
+            Integer quantity
+    );
 }

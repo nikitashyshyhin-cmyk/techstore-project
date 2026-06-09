@@ -196,6 +196,43 @@ public class CartServiceImpl implements CartService {
 
         return getCart(userId);
     }
+    
+    @Override
+    @Transactional
+    public CartResponse updateCartItemQuantity(
+            Long userId,
+            Long cartItemId,
+            Integer quantity
+    ) {
+
+        if (
+                quantity == null ||
+                quantity < 1
+        ) {
+
+            throw new IllegalArgumentException(
+                    "Quantity must be at least 1"
+            );
+        }
+
+        CartItem cartItem =
+                cartItemRepository
+                        .findByIdAndUser_Id(
+                                cartItemId,
+                                userId
+                        )
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Cart item not found"
+                                )
+                        );
+
+        cartItem.setQuantity(quantity);
+
+        cartItemRepository.save(cartItem);
+
+        return getCart(userId);
+    }
 
     private void validateAddToCartRequest(
             AddToCartRequest request

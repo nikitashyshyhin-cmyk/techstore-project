@@ -7,6 +7,7 @@ import com.techstore.entity.User;
 import com.techstore.exception.UnauthorizedException;
 import com.techstore.repository.UserRepository;
 import com.techstore.service.CartService;
+import com.techstore.dto.CartItemUpdateRequest;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -80,5 +81,32 @@ public class CartController {
                 user.getId(),
                 id
         );
+    }
+    
+    @PatchMapping("/items/{id}")
+    public CartResponse updateCartItemQuantity(
+            @PathVariable Long id,
+            @RequestBody CartItemUpdateRequest request,
+            Authentication authentication
+    ) {
+
+        String email =
+                authentication.getName();
+
+        User user =
+                userRepository
+                        .findByEmail(email)
+                        .orElseThrow(() ->
+                                new UnauthorizedException(
+                                        "User not found"
+                                )
+                        );
+
+        return cartService
+                .updateCartItemQuantity(
+                        user.getId(),
+                        id,
+                        request.getQuantity()
+                );
     }
 }
