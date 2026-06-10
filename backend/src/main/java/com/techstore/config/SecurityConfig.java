@@ -50,6 +50,8 @@ public class SecurityConfig {
                 // products list теж можна відкрити
                 .requestMatchers("/api/products/**").permitAll()
 
+                // Відкриваємо доступ до API доставки (Нова Пошта)
+                .requestMatchers("/api/delivery/**").permitAll()
                 // profile тільки з JWT
                 .requestMatchers("/api/users/me").authenticated()
                 // CART тепер захищений JWT

@@ -160,16 +160,25 @@ public class OrderService {
                                             order.getId()
                                     );
 
-                    List<OrderHistoryItemDto> items =
-                            orderItems.stream()
-                                    .map(item ->
-                                            new OrderHistoryItemDto(
-                                                    item.getProduct()
-                                                            .getName(),
-                                                    item.getQuantity()
-                                            )
-                                    )
-                                    .toList();
+//                    List<OrderHistoryItemDto> items =
+//                            orderItems.stream()
+//                                    .map(item ->
+//                                            new OrderHistoryItemDto(
+//                                                    item.getProduct()
+//                                                            .getName(),
+//                                                    item.getQuantity()
+//                                            )
+//                                    )
+//                                    .toList();
+                    List<OrderHistoryItemDto> items = orderItems.stream()
+                            .map(item -> new OrderHistoryItemDto(
+                                    item.getProduct().getName(),
+                                    item.getProduct().getImageUrl(), // Додали фото
+                                    item.getQuantity(),
+                                    item.getPrice(),                 // Додали ціну
+                                    item.getSubtotal()               // Додали суму
+                            ))
+                            .toList();
 
                     int totalItems =
                             orderItems.stream()
