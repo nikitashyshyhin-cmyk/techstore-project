@@ -122,6 +122,8 @@ public class CartServiceImpl implements CartService {
             CartItemDto dto =
                     new CartItemDto();
 
+            dto.setId(item.getId());
+            
             dto.setProductId(
                     item.getProduct().getId()
             );
@@ -169,6 +171,30 @@ public class CartServiceImpl implements CartService {
         );
 
         return response;
+    }
+    
+    @Override
+    @Transactional
+    public CartResponse removeCartItem(
+            Long userId,
+            Long cartItemId
+    ) {
+
+        CartItem cartItem =
+                cartItemRepository
+                        .findByIdAndUser_Id(
+                                cartItemId,
+                                userId
+                        )
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Cart item not found"
+                                )
+                        );
+
+        cartItemRepository.delete(cartItem);
+
+        return getCart(userId);
     }
 
     private void validateAddToCartRequest(
