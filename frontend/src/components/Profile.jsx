@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../api/axios';
+import OrderHistory from './OrderHistory';
 
 import profileIcon from '../assets/profile.png';
 import wishlistIcon from '../assets/wishlist.png';
@@ -22,7 +23,6 @@ const Profile = () => {
 
   // Стани для зміни пароля
   const [pwdData, setPwdData] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
-  // Об'єкт для відстеження видимості паролів ({ currentPassword: false, ... })
   const [showPasswords, setShowPasswords] = useState({ currentPassword: false, newPassword: false, confirmPassword: false });
   const [pwdErrors, setPwdErrors] = useState({});
   const [pwdStatusMsg, setPwdStatusMsg] = useState(null);
@@ -171,7 +171,6 @@ const Profile = () => {
     if (pwdStatusMsg) setPwdStatusMsg(null);
   };
 
-  // Функція перемикання видимості пароля
   const togglePasswordVisibility = (key) => {
     setShowPasswords(prev => ({ ...prev, [key]: !prev[key] }));
   };
@@ -199,7 +198,6 @@ const Profile = () => {
       });
       
       setPwdStatusMsg({ type: 'success', text: '✓ Пароль успішно змінено' });
-      // Очищаємо форму та видимість
       setPwdData({ currentPassword: '', newPassword: '', confirmPassword: '' });
       setShowPasswords({ currentPassword: false, newPassword: false, confirmPassword: false });
       setTimeout(() => setPwdStatusMsg(null), 3000);
@@ -221,12 +219,11 @@ const Profile = () => {
   const tabs = [
     { id: 'profile', label: 'Профіль', icon: profileIcon },
     { id: 'security', label: 'Безпека', icon: securityIcon },
+    { id: 'orders', label: 'Мої замовлення', icon: ordersIcon },
     { id: 'wishlist', label: 'Список бажань', icon: wishlistIcon },
-    { id: 'orders', label: 'Історія покупок', icon: ordersIcon },
     { id: 'logout', label: 'Вийти', icon: logoutIcon },
   ];
 
-  // Іконки ока (Lucide)
   const eyeIcon = (
     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
@@ -271,19 +268,18 @@ const Profile = () => {
         </div>
 
         {/* CONTENT */}
-        <div className="flex-1 p-16 flex flex-col items-center justify-start overflow-y-auto relative">
+        <div className="flex-1 p-10 flex flex-col items-center justify-start overflow-y-auto relative bg-gray-50/30">
           
           {/* ТАБ: ПРОФІЛЬ */}
           {activeTab === 'profile' && (
             <div className="w-full max-w-[500px] mx-auto mt-4 animate-fade-in relative z-10">
               <h1 className="text-2xl text-gray-400 font-light tracking-wider mb-10 text-center">Персональна інформація</h1>
-
+              {/* Код таби профілю залишається без змін... */}
               {statusMsg && statusMsg.type === 'error' && (
                 <div className="mb-6 p-4 rounded-lg text-sm font-medium border bg-red-50 text-red-600 border-red-200">
                   {statusMsg.text}
                 </div>
               )}
-
               <div className="space-y-6">
                 {[
                   { label: 'Email Address', key: 'email', icon: <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/> },
@@ -318,36 +314,16 @@ const Profile = () => {
                   </div>
                 ))}
               </div>
-
               <div className="pt-8 flex flex-col items-center gap-4 relative z-0">
                 <div className="flex gap-4">
                   {!isEditing ? (
-                    <button 
-                      onClick={handleEdit} 
-                      className="bg-[#4B32B1] text-white px-20 py-4 rounded-lg font-medium shadow-xl shadow-[#4B32B1]/10 hover:bg-[#3b2888] transition-all"
-                    >
-                      Редагувати
-                    </button>
+                    <button onClick={handleEdit} className="bg-[#4B32B1] text-white px-20 py-4 rounded-lg font-medium shadow-xl shadow-[#4B32B1]/10 hover:bg-[#3b2888] transition-all">Редагувати</button>
                   ) : (
                     <>
-                      <button 
-                        onClick={handleSubmitProfile} 
-                        disabled={!canSaveProfile || isSaving}
-                        className={`px-12 py-4 rounded-lg font-medium shadow-xl transition-all ${
-                          canSaveProfile 
-                          ? 'bg-green-600 text-white hover:bg-green-700 shadow-green-500/10' 
-                          : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                        }`}
-                      >
+                      <button onClick={handleSubmitProfile} disabled={!canSaveProfile || isSaving} className={`px-12 py-4 rounded-lg font-medium shadow-xl transition-all ${canSaveProfile ? 'bg-green-600 text-white hover:bg-green-700 shadow-green-500/10' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>
                         {isSaving ? 'Збереження...' : 'Зберегти зміни'}
                       </button>
-                      <button 
-                        onClick={handleCancel} 
-                        disabled={isSaving} 
-                        className="bg-white border border-gray-200 text-gray-500 px-12 py-4 rounded-lg font-medium hover:bg-gray-50 transition-all"
-                      >
-                        Скасувати
-                      </button>
+                      <button onClick={handleCancel} disabled={isSaving} className="bg-white border border-gray-200 text-gray-500 px-12 py-4 rounded-lg font-medium hover:bg-gray-50 transition-all">Скасувати</button>
                     </>
                   )}
                 </div>
@@ -358,17 +334,16 @@ const Profile = () => {
             </div>
           )}
 
-          {/* ТАБ: БЕЗПЕКА (Зміна пароля) */}
+          {/* ТАБ: БЕЗПЕКА */}
           {activeTab === 'security' && (
             <div className="w-full max-w-[500px] mx-auto mt-4 animate-fade-in relative z-10">
               <h1 className="text-2xl text-gray-400 font-light tracking-wider mb-10 text-center">Зміна пароля</h1>
-
+              {/* Код таби безпеки залишається без змін... */}
               {pwdStatusMsg && pwdStatusMsg.type === 'error' && (
                 <div className="mb-6 p-4 rounded-lg text-sm font-medium border bg-red-50 text-red-600 border-red-200">
                   {pwdStatusMsg.text}
                 </div>
               )}
-
               <div className="space-y-6">
                 {[
                   { label: 'Поточний пароль', key: 'currentPassword' },
@@ -378,20 +353,11 @@ const Profile = () => {
                   <div key={idx} className="relative z-10">
                     <div className={`flex items-center gap-4 p-5 rounded-xl border shadow-sm transition-all duration-300 bg-white border-gray-200 ${pwdErrors[field.key] ? 'border-red-300 bg-red-50/30' : ''}`}>
                       <div className={`ml-2 transition-colors ${pwdErrors[field.key] ? 'text-red-400' : 'text-gray-300'}`}>
-                        <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                          <path d="M7 11V7a5 5 0 0110 0v4"></path>
-                        </svg>
+                        <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0110 0v4"></path></svg>
                       </div>
-                      <div className="flex-1 relative"> {/* relative потрібен для ока */}
+                      <div className="flex-1 relative">
                         <label className="text-[10px] uppercase text-gray-300 font-bold tracking-widest block mb-1">{field.label}</label>
-                        {/* Кнопка "Показати пароль" */}
-                        <button 
-                          type="button" 
-                          onClick={() => togglePasswordVisibility(field.key)}
-                          className="absolute right-0 bottom-1.5 p-1 text-gray-400 hover:text-[#4B32B1] focus:outline-none transition-colors z-10"
-                          title={showPasswords[field.key] ? "Приховати пароль" : "Показати пароль"}
-                        >
+                        <button type="button" onClick={() => togglePasswordVisibility(field.key)} className="absolute right-0 bottom-1.5 p-1 text-gray-400 hover:text-[#4B32B1] focus:outline-none transition-colors z-10" title={showPasswords[field.key] ? "Приховати пароль" : "Показати пароль"}>
                           {showPasswords[field.key] ? eyeOffIcon : eyeIcon}
                         </button>
                         <input
@@ -399,9 +365,7 @@ const Profile = () => {
                           name={field.key}
                           value={pwdData[field.key]}
                           onChange={handlePwdChange}
-                          className={`w-full bg-transparent text-sm font-medium focus:outline-none border-b pb-1 transition-colors text-gray-700 pr-10 ${
-                            pwdErrors[field.key] ? 'border-red-400 text-red-500 border-dashed' : 'border-gray-300 focus:border-[#4B32B1] border-dashed'
-                          }`}
+                          className={`w-full bg-transparent text-sm font-medium focus:outline-none border-b pb-1 transition-colors text-gray-700 pr-10 ${pwdErrors[field.key] ? 'border-red-400 text-red-500 border-dashed' : 'border-gray-300 focus:border-[#4B32B1] border-dashed'}`}
                           placeholder="••••••••"
                         />
                       </div>
@@ -412,20 +376,10 @@ const Profile = () => {
                   </div>
                 ))}
               </div>
-
               <div className="pt-8 flex flex-col items-center gap-4 relative z-0">
-                <button 
-                  onClick={handleSubmitPassword} 
-                  disabled={!canSavePwd || isSavingPwd}
-                  className={`px-16 py-4 rounded-lg font-medium shadow-xl transition-all ${
-                    canSavePwd 
-                    ? 'bg-[#4B32B1] text-white hover:bg-[#3b2888] shadow-[#4B32B1]/10' 
-                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                  }`}
-                >
+                <button onClick={handleSubmitPassword} disabled={!canSavePwd || isSavingPwd} className={`px-16 py-4 rounded-lg font-medium shadow-xl transition-all ${canSavePwd ? 'bg-[#4B32B1] text-white hover:bg-[#3b2888] shadow-[#4B32B1]/10' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}>
                   {isSavingPwd ? 'Оновлення...' : 'Змінити пароль'}
                 </button>
-                
                 <div className={`h-6 transition-opacity duration-500 ${pwdStatusMsg?.type === 'success' ? 'opacity-100' : 'opacity-0'}`}>
                   <p className="text-green-600 text-sm font-medium">{pwdStatusMsg?.text}</p>
                 </div>
@@ -433,13 +387,19 @@ const Profile = () => {
             </div>
           )}
 
-          {/* ІНШІ ТАБИ (Empty State) */}
-          {activeTab !== 'profile' && activeTab !== 'security' && (
+          {/* ТАБ: МОЇ ЗАМОВЛЕННЯ */}
+          {activeTab === 'orders' && (
+            <div className="w-full max-w-[800px] mx-auto animate-fade-in relative z-10">
+              <h1 className="text-2xl text-gray-400 font-light tracking-wider mb-8 text-center">Мої замовлення</h1>
+              <OrderHistory />
+            </div>
+          )}
+
+          {/* ТАБ: СПИСОК БАЖАНЬ (Empty State) */}
+          {activeTab === 'wishlist' && (
             <div className="text-center space-y-4 animate-fade-in w-full h-full flex flex-col justify-center items-center pb-20 relative z-10">
-              <div className="text-6xl opacity-10">{activeTab === 'wishlist' ? '💜' : '📋'}</div>
-              <p className="text-gray-400 italic">
-                {activeTab === 'wishlist' ? 'Ваш список бажань поки що порожній...' : 'Ви ще не зробили жодного замовлення.'}
-              </p>
+              <div className="text-6xl opacity-10">💜</div>
+              <p className="text-gray-400 italic">Ваш список бажань поки що порожній...</p>
             </div>
           )}
 
