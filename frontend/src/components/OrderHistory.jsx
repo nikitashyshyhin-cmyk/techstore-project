@@ -30,6 +30,17 @@ const OrderHistory = () => {
     }
   };
 
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case 'CREATED': return <span className="bg-blue-100 text-blue-700 px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider">Нове</span>;
+      case 'PROCESSING': return <span className="bg-yellow-100 text-yellow-700 px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider">В обробці</span>;
+      case 'SHIPPED': return <span className="bg-purple-100 text-purple-700 px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider">Відправлено</span>;
+      case 'COMPLETED': return <span className="bg-green-100 text-green-700 px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider">Виконано</span>;
+      case 'CANCELLED': return <span className="bg-red-100 text-red-700 px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider">Скасовано</span>;
+      default: return <span className="bg-gray-100 text-gray-400 px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider" title="Бекенд ще не передає статус">{status || 'Статус не вказано'}</span>;
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -76,13 +87,14 @@ const OrderHistory = () => {
           {/* Шапка замовлення */}
           <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
             <div>
-              <div className="mb-1">
+              <div className="flex items-center gap-3 mb-1">
                 <span className="font-bold text-gray-800 text-lg">Замовлення #{order.id}</span>
+                {getStatusBadge(order.status)}
               </div>
               <span className="text-sm text-gray-500">
-                {new Date(order.createdAt).toLocaleDateString('uk-UA', { 
+                {order.createdAt ? new Date(order.createdAt).toLocaleDateString('uk-UA', { 
                   year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' 
-                })}
+                }) : 'Дата невідома'}
               </span>
             </div>
             
@@ -104,7 +116,7 @@ const OrderHistory = () => {
                     
                     <div className="w-12 h-12 bg-gray-50 rounded border border-gray-100 flex items-center justify-center flex-shrink-0 overflow-hidden text-gray-300">
                       {item.imageUrl || item.product?.imageUrl ? (
-                        <img src={item.imageUrl || item.product?.imageUrl} alt={item.name} className="w-full h-full object-cover rounded" />
+                        <img src={item.imageUrl || item.product?.imageUrl} alt={item.name || item.product?.name} className="w-full h-full object-cover rounded" />
                       ) : (
                         <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>
                       )}
@@ -126,7 +138,10 @@ const OrderHistory = () => {
 
           {/* Підсумок замовлення */}
           <div className="bg-gray-50 px-6 py-4 border-t border-gray-100 flex justify-between items-center">
-            <span className="text-sm font-bold text-gray-500 uppercase tracking-wider">Загальна сума</span>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-bold text-gray-500 uppercase tracking-wider">Загальна сума</span>
+              {order.totalItems && <span className="text-xs text-gray-400 font-medium">({order.totalItems} товарів)</span>}
+            </div>
             <span className="text-xl font-black text-[#4B32B1]">
               {order.total ? `${order.total.toLocaleString('uk-UA')} ₴` : '—'}
             </span>

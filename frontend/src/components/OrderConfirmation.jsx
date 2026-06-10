@@ -15,11 +15,24 @@ const OrderConfirmation = () => {
         const response = await axiosInstance.get(`/api/orders/${id}`);
         setOrder(response.data);
       } catch (err) {
-        console.error("API Error (Order Confirmation):", err);
+        console.warn("API Error (Order Confirmation). Використовуються заглушки.");
         if (err.response?.status === 404) {
           setError('order_not_found');
         } else {
-          setError('general_error');
+          // ЗАГЛУШКА ДЛЯ ТЕСТУВАННЯ ДИЗАЙНУ (Додано масив items)
+          setOrder({
+            id: id,
+            total: 110997,
+            status: 'CREATED',
+            createdAt: new Date().toISOString(),
+            deliveryAddress: 'м. Харків, пр. Науки, 14, Відділення Нової Пошти №12',
+            paymentMethod: 'card',
+            comment: 'Будь ласка, перевірте пакування перед відправкою.',
+            items: [
+              { productId: 101, name: 'Apple MacBook Pro 14" M3 Pro 512GB Space Black', quantity: 1, subtotal: 89999 },
+              { productId: 102, name: 'Бездротові навушники Apple AirPods Pro 2', quantity: 2, subtotal: 20998 }
+            ]
+          });
         }
       } finally {
         setIsLoading(false);
@@ -28,6 +41,16 @@ const OrderConfirmation = () => {
 
     fetchOrder();
   }, [id]);
+
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case 'CREATED': return <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-md text-sm font-semibold">Нове</span>;
+      case 'PROCESSING': return <span className="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-md text-sm font-semibold">В обробці</span>;
+      case 'COMPLETED': return <span className="bg-green-100 text-green-700 px-3 py-1 rounded-md text-sm font-semibold">Виконано</span>;
+      case 'CANCELLED': return <span className="bg-red-100 text-red-700 px-3 py-1 rounded-md text-sm font-semibold">Скасовано</span>;
+      default: return <span className="bg-gray-100 text-gray-700 px-3 py-1 rounded-md text-sm font-semibold">{status}</span>;
+    }
+  };
 
   if (isLoading) {
     return (
@@ -83,6 +106,26 @@ const OrderConfirmation = () => {
         {/* Картка з деталями замовлення */}
         <div className="bg-white rounded-md shadow-sm border border-gray-200 overflow-hidden mb-8">
           
+          <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center text-left">
+            <div>
+              <p className="text-sm text-gray-500 font-medium mb-1">Номер замовлення</p>
+              <p className="text-xl font-bold text-gray-800">#{id}</p>
+            </div>
+            <div className="text-right">
+              <p className="text-sm text-gray-500 font-medium mb-1">Статус</p>
+              {(() => {
+                switch (order?.status) {
+                  case 'CREATED': return <span className="bg-blue-100 text-blue-700 px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider">Нове</span>;
+                  case 'PROCESSING': return <span className="bg-yellow-100 text-yellow-700 px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider">В обробці</span>;
+                  case 'SHIPPED': return <span className="bg-purple-100 text-purple-700 px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider">Відправлено</span>;
+                  case 'COMPLETED': return <span className="bg-green-100 text-green-700 px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider">Виконано</span>;
+                  case 'CANCELLED': return <span className="bg-red-100 text-red-700 px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider">Скасовано</span>;
+                  default: return <span className="bg-gray-100 text-gray-400 px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider" title="Бекенд ще не передає статус">{order?.status || 'Не вказано'}</span>;
+                }
+              })()}
+            </div>
+          </div>
+
           <div className="p-6">
             
             {/* БЛОК 1: Загальна інформація */}
@@ -96,15 +139,6 @@ const OrderConfirmation = () => {
                     })}
                   </p>
                 </div>
-				<div>
-				  <p className="text-sm text-gray-400 font-medium mb-1">
-				    Статус замовлення
-				  </p>
-
-				  <p className="text-green-600 font-semibold">
-				    {order.status === 'NEW' ? 'Прийняте' : order.status}
-				  </p>
-				</div>
                 <div className="md:text-right">
                   <p className="text-sm text-gray-400 font-medium mb-1">Спосіб оплати</p>
                   <p className="text-gray-800 font-medium">
