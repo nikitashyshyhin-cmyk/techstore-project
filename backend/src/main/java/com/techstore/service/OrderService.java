@@ -23,6 +23,7 @@ import org.springframework.security.access.AccessDeniedException;
 import com.techstore.dto.OrderHistoryDto;
 import com.techstore.dto.OrderHistoryItemDto;
 import com.techstore.entity.OrderStatus;
+import com.techstore.entity.DeliveryType;
 
 
 @Service
@@ -58,9 +59,20 @@ public class OrderService {
             throw new IllegalArgumentException("Кошик порожній");
         }
 
-        // 3. Створюємо та зберігаємо головне замовлення
+        // 3. Валідація даних доставки та визначення типу доставки
+        DeliveryType finalDeliveryType = request.getDeliveryType();
+        if (finalDeliveryType == null) {
+            finalDeliveryType = DeliveryType.NOVA_POSHTA; // за замовчуванням
+        }
+
+        if (request.getDeliveryAddress() == null || request.getDeliveryAddress().trim().isEmpty()) {
+            throw new IllegalArgumentException("Адреса доставки є обов'язковою для заповнення");
+        }
+
+        // Створюємо та зберігаємо головне замовлення з типом доставки
         Order order = new Order(
                 user,
+                finalDeliveryType,
                 request.getDeliveryAddress(),
                 request.getPaymentMethod(),
                 request.getComment(),

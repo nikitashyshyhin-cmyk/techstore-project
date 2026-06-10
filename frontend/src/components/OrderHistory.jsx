@@ -82,13 +82,13 @@ const OrderHistory = () => {
   return (
     <div className="space-y-6">
       {orders.map((order) => (
-        <div key={order.orderId} className="bg-white rounded-md border border-gray-200 shadow-sm overflow-hidden">
+        <div key={order.id} className="bg-white rounded-md border border-gray-200 shadow-sm overflow-hidden">
           
           {/* Шапка замовлення */}
           <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
             <div>
               <div className="flex items-center gap-3 mb-1">
-                <span className="font-bold text-gray-800 text-lg">Замовлення #{order.orderId}</span>
+                <span className="font-bold text-gray-800 text-lg">Замовлення #{order.id}</span>
                 {getStatusBadge(order.status)}
               </div>
               <span className="text-sm text-gray-500">
@@ -99,8 +99,8 @@ const OrderHistory = () => {
             </div>
             
             <Link 
-              to={`/orders/${order.orderId}/confirmation`}
-              className="text-[#4B32B1] text-sm font-semibold hover:underline underline-offset-2 bg-[#E5E0FF]/50 px-4 py-2 rounded-md transition-colors"
+              to={`/orders/${order.id}/confirmation`}
+              className="text-[#4B32B1] text-sm font-semibold hover:underline underline-offset-3 bg-[#E5E0FF]/50 px-4 py-2 rounded-md transition-colors"
               style={{ textDecorationSkipInk: 'none' }}
             >
               Деталі замовлення
@@ -111,12 +111,25 @@ const OrderHistory = () => {
           <div className="p-6">
             <div className="space-y-4">
               {order.items && order.items.map((item, index) => (
-                <div key={index} className="flex justify-between items-center py-2 border-b border-gray-50 last:border-0 last:pb-0">
-                  <div className="flex items-center flex-1 pr-4">
-                    <div>
-                      <p className="font-semibold text-gray-700 text-sm line-clamp-1">{item.productName || 'Невідомий товар'}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">Кількість: {item.quantity} шт.</p>
+                <div key={index} className="flex justify-between items-center py-3 border-b border-gray-50 last:border-0 last:pb-0">
+                  <div className="flex items-center gap-4 flex-1 pr-4">
+                    
+                    <div className="w-12 h-12 bg-gray-50 rounded border border-gray-100 flex items-center justify-center flex-shrink-0 overflow-hidden text-gray-300">
+                      {item.imageUrl || item.product?.imageUrl ? (
+                        <img src={item.imageUrl || item.product?.imageUrl} alt={item.name || item.product?.name} className="w-full h-full object-cover rounded" />
+                      ) : (
+                        <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>
+                      )}
                     </div>
+                    
+                    <div>
+                      <p className="font-semibold text-gray-700 text-sm line-clamp-1">{item.name || item.product?.name || 'Невідомий товар'}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">{item.quantity} шт. × {item.price ? `${item.price.toLocaleString('uk-UA')} ₴` : '—'}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="font-bold text-gray-800 whitespace-nowrap text-right">
+                    {item.subtotal ? `${item.subtotal.toLocaleString('uk-UA')} ₴` : '—'}
                   </div>
                 </div>
               ))}
