@@ -7,6 +7,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import com.techstore.dto.OrderConfirmationResponse;
+import com.techstore.dto.OrderHistoryDto;
+import com.techstore.dto.OrderStatusUpdateRequest;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -41,5 +45,33 @@ public class OrderController {
                 );
 
         return ResponseEntity.ok(response);
+    }
+    
+    @GetMapping
+    public ResponseEntity<List<OrderHistoryDto>>
+    getOrderHistory(
+            Authentication authentication
+    ) {
+
+        return ResponseEntity.ok(
+                orderService.getOrderHistory(
+                        authentication.getName()
+                )
+        );
+    }
+
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<?> updateOrderStatus(
+            @PathVariable Long id,
+            @RequestBody OrderStatusUpdateRequest request
+    ) {
+        // Примітка: пізніше цей endpoint слід захистити для адміністратора
+        // через @PreAuthorize("hasRole('ADMIN')") або в SecurityConfig
+        try {
+            orderService.updateOrderStatus(id, request.getStatus());
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }

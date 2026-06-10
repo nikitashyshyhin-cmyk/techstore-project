@@ -8,7 +8,14 @@ const Checkout = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   
-  const [deliveryAddress, setDeliveryAddress] = useState('');
+  const [deliveryMethod, setDeliveryMethod] = useState('novaposhta'); // За замовчуванням Нова Пошта
+  const [warehouses, setWarehouses] = useState([]);
+  const [isLoadingWarehouses, setIsLoadingWarehouses] = useState(false);
+  const [warehouseError, setWarehouseError] = useState(null);
+  
+  const [selectedWarehouse, setSelectedWarehouse] = useState('');
+  const [manualAddress, setManualAddress] = useState('');
+
   const [paymentMethod, setPaymentMethod] = useState('card');
   const [comment, setComment] = useState('');
 
@@ -21,6 +28,7 @@ const Checkout = () => {
       return;
     }
     fetchCheckoutData();
+    fetchWarehouses(); 
   }, [navigate]);
 
   const fetchCheckoutData = async () => {
@@ -46,10 +54,31 @@ const Checkout = () => {
     }
   };
 
+  // ФУНКЦІЯ ЗАВАНТАЖЕННЯ ВІДДІЛЕНЬ НОВОЇ ПОШТИ
+  const fetchWarehouses = async () => {
+    setIsLoadingWarehouses(true);
+    setWarehouseError(null);
+    try {
+      const response = await axiosInstance.get('/api/delivery/warehouses');
+      setWarehouses(response.data || []);
+    } catch (err) {
+      console.error("Помилка завантаження відділень:", err);
+      setWarehouseError("Не вдалося завантажити список відділень.");
+    } finally {
+      setIsLoadingWarehouses(false);
+    }
+  };
+
   const handleSubmitOrder = async () => {
+    // Визначаємо фінальну адресу залежно від обраного способу
+    const finalAddress = deliveryMethod === 'novaposhta' ? selectedWarehouse : manualAddress;
+
     // Базова валідація
-    if (!deliveryAddress.trim()) {
-      setSubmitError("Будь ласка, вкажіть адресу доставки.");
+    if (!finalAddress.trim()) {
+      setSubmitError(deliveryMethod === 'novaposhta' 
+        ? "Будь ласка, оберіть відділення Нової Пошти зі списку." 
+        : "Будь ласка, вкажіть адресу доставки."
+      );
       return;
     }
 
@@ -57,17 +86,14 @@ const Checkout = () => {
     setSubmitError(null);
 
     try {
-      // Відправляємо запит з нашими додатковими полями
+      // Відправляємо запит з фінальною адресою
       const response = await axiosInstance.post('/api/orders', {
-        deliveryAddress,
+        deliveryAddress: finalAddress,
         paymentMethod,
         comment
       });
 
-      // Отримуємо дані з відповіді сервера
-      const { orderId, total, status } = response.data;
-      
-      // Перенаправляємо на сторінку підтвердження (якщо бекенд повертає id під іншим ключем - використовуємо його)
+      const { orderId, status } = response.data;
       const finalOrderId = orderId || response.data.id || 'new';
       navigate(`/orders/${finalOrderId}/confirmation`);
       
@@ -121,7 +147,7 @@ const Checkout = () => {
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* ЛІВА КОЛОНКА (Товари, Доставка, Оплата, Коментар) */}
+          {/* ЛІВА КОЛОНКА */}
           <div className="flex-1 space-y-6">
             <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200">
               <h2 className="text-xl font-bold text-gray-800 mb-4 border-b border-gray-100 pb-4">Ваше замовлення</h2>
@@ -147,20 +173,81 @@ const Checkout = () => {
               </div>
             </div>
 
+            {/* ОНОВЛЕНИЙ БЛОК ДОСТАВКИ */}
             <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200">
               <h2 className="text-xl font-bold text-gray-800 mb-4">Доставка</h2>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Адреса доставки <span className="text-red-500">*</span></label>
-                <input
-                  type="text"
-                  value={deliveryAddress}
-                  onChange={(e) => {
-                    setDeliveryAddress(e.target.value);
-                    if (submitError) setSubmitError(null); // Прибираємо помилку при вводі
-                  }}
-                  placeholder="Місто, вулиця, номер будинку/відділення пошти"
-                  className="w-full p-3 border border-gray-200 rounded-md focus:outline-none focus:border-[#4B32B1] focus:ring-1 focus:ring-[#4B32B1]/20 text-sm text-gray-700"
-                />
+              
+              {/* Перемикач способу доставки */}
+              <div className="flex flex-col sm:flex-row gap-4 mb-6">
+                <label className={`flex-1 flex items-center p-4 border rounded-md cursor-pointer transition-all ${deliveryMethod === 'novaposhta' ? 'border-[#4B32B1] bg-[#E5E0FF]/20 shadow-sm' : 'border-gray-200 hover:border-gray-300'}`}>
+                  <input type="radio" value="novaposhta" checked={deliveryMethod === 'novaposhta'} onChange={() => { setDeliveryMethod('novaposhta'); setSubmitError(null); }} className="w-4 h-4 text-[#4B32B1] focus:ring-[#4B32B1] border-gray-300" />
+                  <div className="ml-3">
+                    <span className={`block text-sm font-semibold ${deliveryMethod === 'novaposhta' ? 'text-[#4B32B1]' : 'text-gray-700'}`}>Нова Пошта</span>
+                    <span className="block text-xs text-gray-400 mt-0.5">До відділення або поштомату</span>
+                  </div>
+                </label>
+
+                <label className={`flex-1 flex items-center p-4 border rounded-md cursor-pointer transition-all ${deliveryMethod === 'manual' ? 'border-[#4B32B1] bg-[#E5E0FF]/20 shadow-sm' : 'border-gray-200 hover:border-gray-300'}`}>
+                  <input type="radio" value="manual" checked={deliveryMethod === 'manual'} onChange={() => { setDeliveryMethod('manual'); setSubmitError(null); }} className="w-4 h-4 text-[#4B32B1] focus:ring-[#4B32B1] border-gray-300" />
+                  <div className="ml-3">
+                    <span className={`block text-sm font-semibold ${deliveryMethod === 'manual' ? 'text-[#4B32B1]' : 'text-gray-700'}`}>Адресна доставка / Інше</span>
+                    <span className="block text-xs text-gray-400 mt-0.5">Кур'єром до дверей</span>
+                  </div>
+                </label>
+              </div>
+
+              {/* Поля вводу залежно від обраного способу */}
+              <div className="animate-fade-in">
+                {deliveryMethod === 'novaposhta' ? (
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Оберіть відділення <span className="text-red-500">*</span></label>
+                    
+                    {isLoadingWarehouses ? (
+                      <div className="w-full p-3 border border-gray-200 rounded-md bg-gray-50 text-gray-500 text-sm flex items-center gap-2">
+                        <svg className="animate-spin h-4 w-4 text-[#4B32B1]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Завантаження списку відділень...
+                      </div>
+                    ) : warehouseError ? (
+                      <div className="w-full p-3 border border-red-200 rounded-md bg-red-50 text-red-600 text-sm">
+                        {warehouseError}
+                      </div>
+                    ) : (
+                      <select
+                        value={selectedWarehouse}
+                        onChange={(e) => {
+                          setSelectedWarehouse(e.target.value);
+                          if (submitError) setSubmitError(null);
+                        }}
+                        className="w-full p-3 border border-gray-200 rounded-md focus:outline-none focus:border-[#4B32B1] focus:ring-1 focus:ring-[#4B32B1]/20 text-sm text-gray-700 bg-white"
+                      >
+                        <option value="" disabled>Оберіть відділення або поштомат з переліку...</option>
+                        {warehouses.map((wh) => (
+                          // Використовуємо description (або name), бо DTO може мати різні назви полів
+                          <option key={wh.ref || wh.id || wh.description} value={wh.description || wh.name}>
+                            {wh.description || wh.name}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+                ) : (
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Адреса доставки <span className="text-red-500">*</span></label>
+                    <input
+                      type="text"
+                      value={manualAddress}
+                      onChange={(e) => {
+                        setManualAddress(e.target.value);
+                        if (submitError) setSubmitError(null);
+                      }}
+                      placeholder="Місто, вулиця, номер будинку/квартири"
+                      className="w-full p-3 border border-gray-200 rounded-md focus:outline-none focus:border-[#4B32B1] focus:ring-1 focus:ring-[#4B32B1]/20 text-sm text-gray-700"
+                    />
+                  </div>
+                )}
               </div>
             </div>
 
@@ -201,7 +288,7 @@ const Checkout = () => {
 
           </div>
 
-          {/* ПРАВА КОЛОНКА: Підсумок та Кнопка */}
+          {/* ПРАВА КОЛОНКА */}
           <div className="w-full lg:w-[400px]">
             <div className="bg-white p-6 rounded-md shadow-sm border border-gray-200 sticky top-24">
               <h2 className="text-xl font-bold text-gray-800 mb-6">Разом</h2>
@@ -228,14 +315,12 @@ const Checkout = () => {
                 </div>
               </div>
 
-              {/* Блок помилки */}
               {submitError && (
                 <div className="mb-4 p-3 bg-red-50 border border-red-100 text-red-500 text-sm rounded-md text-center font-medium">
                   {submitError}
                 </div>
               )}
 
-              {/* ОНОВЛЕНА КНОПКА З ІНДИКАТОРОМ ЗАВАНТАЖЕННЯ */}
               <button 
                 onClick={handleSubmitOrder}
                 disabled={isSubmitting}

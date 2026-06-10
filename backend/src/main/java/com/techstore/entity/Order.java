@@ -17,21 +17,24 @@ public class Order {
 
     private String deliveryAddress;
     private String paymentMethod;
+    @Enumerated(EnumType.STRING)
+    private DeliveryType deliveryType = DeliveryType.NOVA_POSHTA;
     private String comment;
     private BigDecimal total;
-    private String status = "NEW";
+    @Enumerated(EnumType.STRING)
+    private OrderStatus status = OrderStatus.CREATED;
     private LocalDateTime createdAt = LocalDateTime.now();
 
     public Order() {
     }
 
-    public Order(User user, String deliveryAddress, String paymentMethod, String comment, BigDecimal total) {
+    public Order(User user, DeliveryType deliveryType, String deliveryAddress, String paymentMethod, String comment, BigDecimal total) {
         this.user = user;
+        this.deliveryType = deliveryType;
         this.deliveryAddress = deliveryAddress;
         this.paymentMethod = paymentMethod;
         this.comment = comment;
         this.total = total;
-        this.status = "NEW";
         this.createdAt = LocalDateTime.now();
     }
 
@@ -40,6 +43,9 @@ public class Order {
 
     public User getUser() { return user; }
     public void setUser(User user) { this.user = user; }
+
+    public DeliveryType getDeliveryType() { return deliveryType; }
+    public void setDeliveryType(DeliveryType deliveryType) { this.deliveryType = deliveryType; }
 
     public String getDeliveryAddress() { return deliveryAddress; }
     public void setDeliveryAddress(String deliveryAddress) { this.deliveryAddress = deliveryAddress; }
@@ -53,8 +59,8 @@ public class Order {
     public BigDecimal getTotal() { return total; }
     public void setTotal(BigDecimal total) { this.total = total; }
 
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
+    public OrderStatus getStatus() { return status; }
+    public void setStatus(OrderStatus status) { this.status = status; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

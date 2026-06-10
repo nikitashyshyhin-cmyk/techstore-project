@@ -1,13 +1,14 @@
 package com.techstore.dto;
 
 import java.math.BigDecimal;
+import com.techstore.entity.OrderStatus;
 
 public class CreateOrderResponse {
     private Long orderId;
     private BigDecimal total;
-    private String status;
+    private OrderStatus status;
 
-    public CreateOrderResponse(Long orderId, BigDecimal total, String status) {
+    public CreateOrderResponse(Long orderId, BigDecimal total, OrderStatus status) {
         this.orderId = orderId;
         this.total = total;
         this.status = status;
@@ -19,6 +20,6 @@ public class CreateOrderResponse {
     public BigDecimal getTotal() { return total; }
     public void setTotal(BigDecimal total) { this.total = total; }
 
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
+    public OrderStatus getStatus() { return status; }
+    public void setStatus(OrderStatus status) { this.status = status; }
 }

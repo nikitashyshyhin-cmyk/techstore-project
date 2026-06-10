@@ -16,7 +16,14 @@ import com.techstore.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.techstore.dto.OrderConfirmationResponse;
+
+import java.util.List;
+
 import org.springframework.security.access.AccessDeniedException;
+import com.techstore.dto.OrderHistoryDto;
+import com.techstore.dto.OrderHistoryItemDto;
+import com.techstore.entity.OrderStatus;
+import com.techstore.entity.DeliveryType;
 
 
 @Service
@@ -52,9 +59,20 @@ public class OrderService {
             throw new IllegalArgumentException("Кошик порожній");
         }
 
-        // 3. Створюємо та зберігаємо головне замовлення
+        // 3. Валідація даних доставки та визначення типу доставки
+        DeliveryType finalDeliveryType = request.getDeliveryType();
+        if (finalDeliveryType == null) {
+            finalDeliveryType = DeliveryType.NOVA_POSHTA; // за замовчуванням
+        }
+
+        if (request.getDeliveryAddress() == null || request.getDeliveryAddress().trim().isEmpty()) {
+            throw new IllegalArgumentException("Адреса доставки є обов'язковою для заповнення");
+        }
+
+        // Створюємо та зберігаємо головне замовлення з типом доставки
         Order order = new Order(
                 user,
+                finalDeliveryType,
                 request.getDeliveryAddress(),
                 request.getPaymentMethod(),
                 request.getComment(),
@@ -113,5 +131,72 @@ public class OrderService {
                 order.getDeliveryAddress(),
                 order.getPaymentMethod()
         );
+    }
+    
+    @Transactional(readOnly = true)
+    public List<OrderHistoryDto> getOrderHistory(
+            String email
+    ) {
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Користувача не знайдено"
+                        )
+                );
+
+        List<Order> orders =
+                orderRepository
+                        .findByUser_IdOrderByCreatedAtDesc(
+                                user.getId()
+                        );
+
+        return orders.stream()
+                .map(order -> {
+
+                    List<OrderItem> orderItems =
+                            orderItemRepository
+                                    .findByOrder_Id(
+                                            order.getId()
+                                    );
+
+                    List<OrderHistoryItemDto> items =
+                            orderItems.stream()
+                                    .map(item ->
+                                            new OrderHistoryItemDto(
+                                                    item.getProduct()
+                                                            .getName(),
+                                                    item.getQuantity()
+                                            )
+                                    )
+                                    .toList();
+
+                    int totalItems =
+                            orderItems.stream()
+                                    .mapToInt(
+                                            OrderItem::getQuantity
+                                    )
+                                    .sum();
+
+                    return new OrderHistoryDto(
+                            order.getId(),
+                            order.getCreatedAt(),
+                            order.getTotal(),
+                            totalItems,
+                            items
+                    );
+
+                })
+                .toList();
+
+    }
+
+    @Transactional
+    public void updateOrderStatus(Long orderId, OrderStatus newStatus) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Замовлення не знайдено"));
+
+        order.setStatus(newStatus);
+        orderRepository.save(order);
     }
 }
