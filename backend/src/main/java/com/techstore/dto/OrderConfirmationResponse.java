@@ -12,6 +12,7 @@ public class OrderConfirmationResponse {
 
     private String deliveryAddress;
     private String paymentMethod;
+    private String comment;
 
     public OrderConfirmationResponse() {
     }
@@ -69,4 +70,7 @@ public class OrderConfirmationResponse {
     public void setPaymentMethod(String paymentMethod) {
         this.paymentMethod = paymentMethod;
     }
+
+    public String getComment() { return comment; }
+    public void setComment(String comment) { this.comment = comment; }
 }

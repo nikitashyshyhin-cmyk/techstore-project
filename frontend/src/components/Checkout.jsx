@@ -9,11 +9,19 @@ const Checkout = () => {
   const [error, setError] = useState(null);
   
   const [deliveryMethod, setDeliveryMethod] = useState('novaposhta'); // За замовчуванням Нова Пошта
+  // Стани для міст
+  const [cities, setCities] = useState([]);
+  const [isLoadingCities, setIsLoadingCities] = useState(false);
+  const [citySearch, setCitySearch] = useState('');
+  const [selectedCityRef, setSelectedCityRef] = useState('');
+
+  // Стани для відділень
   const [warehouses, setWarehouses] = useState([]);
   const [isLoadingWarehouses, setIsLoadingWarehouses] = useState(false);
   const [warehouseError, setWarehouseError] = useState(null);
-  
+  const [warehouseSearch, setWarehouseSearch] = useState('');
   const [selectedWarehouse, setSelectedWarehouse] = useState('');
+  const [showWarehouseDropdown, setShowWarehouseDropdown] = useState(false);
   const [manualAddress, setManualAddress] = useState('');
 
   const [paymentMethod, setPaymentMethod] = useState('card');
@@ -28,8 +36,28 @@ const Checkout = () => {
       return;
     }
     fetchCheckoutData();
-    fetchWarehouses(); 
   }, [navigate]);
+
+  // Ефект пошуку міст (запускається, коли введено 2+ букви)
+  useEffect(() => {
+    if (citySearch.length >= 2 && !selectedCityRef) {
+      const delayDebounceFn = setTimeout(() => {
+        fetchCities(citySearch);
+      }, 500); // Затримка, щоб не спамити API при кожному натисканні
+      return () => clearTimeout(delayDebounceFn);
+    } else if (citySearch.length < 2) {
+      setCities([]);
+    }
+  }, [citySearch, selectedCityRef]);
+
+  // Ефект завантаження відділень при виборі міста
+  useEffect(() => {
+    if (selectedCityRef) {
+      fetchWarehouses(selectedCityRef);
+    } else {
+      setWarehouses([]);
+    }
+  }, [selectedCityRef]);
 
   const fetchCheckoutData = async () => {
     setIsLoading(true);
@@ -54,12 +82,23 @@ const Checkout = () => {
     }
   };
 
-  // ФУНКЦІЯ ЗАВАНТАЖЕННЯ ВІДДІЛЕНЬ НОВОЇ ПОШТИ
-  const fetchWarehouses = async () => {
+  const fetchCities = async (query) => {
+    setIsLoadingCities(true);
+    try {
+      const response = await axiosInstance.get(`/api/delivery/cities?cityName=${encodeURIComponent(query)}`);
+      setCities(response.data || []);
+    } catch (err) {
+      console.error("Помилка завантаження міст:", err);
+    } finally {
+      setIsLoadingCities(false);
+    }
+  };
+
+  const fetchWarehouses = async (cityRef) => {
     setIsLoadingWarehouses(true);
     setWarehouseError(null);
     try {
-      const response = await axiosInstance.get('/api/delivery/warehouses');
+      const response = await axiosInstance.get(`/api/delivery/warehouses?cityRef=${cityRef}`);
       setWarehouses(response.data || []);
     } catch (err) {
       console.error("Помилка завантаження відділень:", err);
@@ -93,8 +132,13 @@ const Checkout = () => {
         comment
       });
 
-      const { orderId, status } = response.data;
-      const finalOrderId = orderId || response.data.id || 'new';
+      // Беремо дані з відповіді
+      const data = response.data;
+
+      // Перевіряємо всі можливі варіанти назви поля (orderId, order_id, id), які міг віддати бекенд
+      const finalOrderId = data.orderId || data.order_id || data.id || 'new';
+
+      // Переходимо на сторінку підтвердження
       navigate(`/orders/${finalOrderId}/confirmation`);
       
     } catch (err) {
@@ -199,40 +243,107 @@ const Checkout = () => {
               {/* Поля вводу залежно від обраного способу */}
               <div className="animate-fade-in">
                 {deliveryMethod === 'novaposhta' ? (
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Оберіть відділення <span className="text-red-500">*</span></label>
-                    
-                    {isLoadingWarehouses ? (
-                      <div className="w-full p-3 border border-gray-200 rounded-md bg-gray-50 text-gray-500 text-sm flex items-center gap-2">
-                        <svg className="animate-spin h-4 w-4 text-[#4B32B1]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Завантаження списку відділень...
+                    <div className="space-y-5">
+                      {/* Вибір міста */}
+                      <div className="relative">
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Місто <span className="text-red-500">*</span></label>
+                        <input
+                            type="text"
+                            value={citySearch}
+                            onChange={(e) => {
+                              setCitySearch(e.target.value);
+                              setSelectedCityRef('');
+                              setWarehouseSearch('');
+                              setSelectedWarehouse('');
+                              if (submitError) setSubmitError(null);
+                            }}
+                            placeholder="Почніть вводити назву міста (від 2 букв)..."
+                            className="w-full p-3 border border-gray-200 rounded-md focus:outline-none focus:border-[#4B32B1] focus:ring-1 focus:ring-[#4B32B1]/20 text-sm text-gray-700"
+                        />
+                        {isLoadingCities && (
+                            <div className="absolute right-3 top-10">
+                              <svg className="animate-spin h-5 w-5 text-[#4B32B1]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                            </div>
+                        )}
+
+                        {/* Випадаючий список міст */}
+                        {cities.length > 0 && !selectedCityRef && (
+                            <ul className="absolute z-20 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-48 overflow-y-auto">
+                              {cities.map(city => (
+                                  <li
+                                      key={city.ref}
+                                      className="px-4 py-2.5 hover:bg-gray-50 cursor-pointer text-sm text-gray-700 border-b border-gray-50 last:border-0"
+                                      onClick={() => {
+                                        setCitySearch(city.description);
+                                        setSelectedCityRef(city.ref);
+                                        setCities([]);
+                                      }}
+                                  >
+                                    {city.description}
+                                  </li>
+                              ))}
+                            </ul>
+                        )}
                       </div>
-                    ) : warehouseError ? (
-                      <div className="w-full p-3 border border-red-200 rounded-md bg-red-50 text-red-600 text-sm">
-                        {warehouseError}
+
+                      {/* Вибір відділення */}
+                      <div className="relative">
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Відділення або поштомат <span className="text-red-500">*</span></label>
+                        <input
+                            type="text"
+                            value={warehouseSearch}
+                            onChange={(e) => {
+                              setWarehouseSearch(e.target.value);
+                              setSelectedWarehouse('');
+                              setShowWarehouseDropdown(true);
+                              if (submitError) setSubmitError(null);
+                            }}
+                            onFocus={() => setShowWarehouseDropdown(true)}
+                            onBlur={() => setTimeout(() => setShowWarehouseDropdown(false), 200)} // Затримка, щоб клік по елементу списку встиг спрацювати
+                            disabled={!selectedCityRef}
+                            placeholder={selectedCityRef ? "Введіть номер або адресу (наприклад, '12' або 'Науки')... " : "Спочатку оберіть місто"}
+                            className="w-full p-3 border border-gray-200 rounded-md focus:outline-none focus:border-[#4B32B1] focus:ring-1 focus:ring-[#4B32B1]/20 text-sm text-gray-700 disabled:bg-gray-50 disabled:text-gray-400"
+                        />
+
+                        {isLoadingWarehouses ? (
+                            <div className="mt-2 text-xs text-gray-500">Завантаження відділень...</div>
+                        ) : (
+                            /* Випадаючий список відділень показується, коли активовано фокус, є дані й не обрано кінцевий варіант */
+                            selectedCityRef && warehouses.length > 0 && showWarehouseDropdown && !selectedWarehouse && (
+                                <ul className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                                  {warehouses
+                                      .filter(wh => {
+                                        const desc = wh?.description || wh?.name || '';
+                                        return desc.toLowerCase().includes(warehouseSearch.toLowerCase());
+                                      })
+                                      .map(wh => {
+                                        const warehouseName = wh.description || wh.name || 'Без назви';
+                                        return (
+                                            <li
+                                                key={wh.ref || wh.id || warehouseName}
+                                                className="px-4 py-2.5 hover:bg-gray-50 cursor-pointer text-sm text-gray-700 border-b border-gray-50 last:border-0"
+                                                onClick={() => {
+                                                  setWarehouseSearch(warehouseName);
+                                                  setSelectedWarehouse(warehouseName);
+                                                  setShowWarehouseDropdown(false);
+                                                }}
+                                            >
+                                              {warehouseName}
+                                            </li>
+                                        );
+                                      })}
+                                  {warehouses.filter(wh => {
+                                    const desc = wh?.description || wh?.name || '';
+                                    return desc.toLowerCase().includes(warehouseSearch.toLowerCase());
+                                  }).length === 0 && (
+                                      <li className="px-4 py-2.5 text-sm text-gray-400 italic">Нічого не знайдено</li>
+                                  )}
+                                </ul>
+                            )
+                        )}
+                        {warehouseError && <div className="mt-2 text-xs text-red-500">{warehouseError}</div>}
                       </div>
-                    ) : (
-                      <select
-                        value={selectedWarehouse}
-                        onChange={(e) => {
-                          setSelectedWarehouse(e.target.value);
-                          if (submitError) setSubmitError(null);
-                        }}
-                        className="w-full p-3 border border-gray-200 rounded-md focus:outline-none focus:border-[#4B32B1] focus:ring-1 focus:ring-[#4B32B1]/20 text-sm text-gray-700 bg-white"
-                      >
-                        <option value="" disabled>Оберіть відділення або поштомат з переліку...</option>
-                        {warehouses.map((wh) => (
-                          // Використовуємо description (або name), бо DTO може мати різні назви полів
-                          <option key={wh.ref || wh.id || wh.description} value={wh.description || wh.name}>
-                            {wh.description || wh.name}
-                          </option>
-                        ))}
-                      </select>
-                    )}
-                  </div>
+                    </div>
                 ) : (
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Адреса доставки <span className="text-red-500">*</span></label>
