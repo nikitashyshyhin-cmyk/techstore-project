@@ -124,13 +124,15 @@ public class OrderService {
             );
         }
 
-        return new OrderConfirmationResponse(
-                order.getTotal(),
-                order.getStatus(),
-                order.getCreatedAt(),
-                order.getDeliveryAddress(),
-                order.getPaymentMethod()
-        );
+        OrderConfirmationResponse response = new OrderConfirmationResponse();
+        response.setTotal(order.getTotal());
+        response.setStatus(order.getStatus());
+        response.setCreatedAt(order.getCreatedAt());
+        response.setDeliveryAddress(order.getDeliveryAddress());
+        response.setPaymentMethod(order.getPaymentMethod());
+        response.setComment(order.getComment()); // Встановлюємо коментар явно
+
+        return response;
     }
     
     @Transactional(readOnly = true)
@@ -192,6 +194,7 @@ public class OrderService {
                             order.getCreatedAt(),
                             order.getTotal(),
                             totalItems,
+                            order.getStatus(), // ПЕРЕДАЄМО СТАТУС З БД
                             items
                     );
 

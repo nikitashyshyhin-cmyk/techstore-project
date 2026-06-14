@@ -77,7 +77,7 @@ const OrderHistory = () => {
           <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
             <div>
               <div className="mb-1">
-                <span className="font-bold text-gray-800 text-lg">Замовлення #{order.id}</span>
+                <span className="font-bold text-gray-800 text-lg">Замовлення #{order.orderId}</span>
               </div>
               <span className="text-sm text-gray-500">
                 {new Date(order.createdAt).toLocaleDateString('uk-UA', { 
@@ -85,11 +85,11 @@ const OrderHistory = () => {
                 })}
               </span>
             </div>
-            
-            <Link 
-              to={`/orders/${order.id}/confirmation`}
-              className="text-[#4B32B1] text-sm font-semibold hover:underline underline-offset-3 bg-[#E5E0FF]/50 px-4 py-2 rounded-md transition-colors"
-              style={{ textDecorationSkipInk: 'none' }}
+
+            <Link
+                to={`/orders/${order.orderId}/confirmation`}
+                className="text-[#4B32B1] text-sm font-semibold hover:underline underline-offset-3 bg-[#E5E0FF]/50 px-4 py-2 rounded-md transition-colors"
+                style={{ textDecorationSkipInk: 'none' }}
             >
               Деталі замовлення
             </Link>

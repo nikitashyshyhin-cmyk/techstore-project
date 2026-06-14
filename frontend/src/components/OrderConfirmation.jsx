@@ -104,8 +104,9 @@ const OrderConfirmation = () => {
         </div>
 
         {/* Картка з деталями замовлення */}
+        {/* Картка з деталями замовлення */}
         <div className="bg-white rounded-md shadow-sm border border-gray-200 overflow-hidden mb-8">
-          
+
           <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center text-left">
             <div>
               <p className="text-sm text-gray-500 font-medium mb-1">Номер замовлення</p>

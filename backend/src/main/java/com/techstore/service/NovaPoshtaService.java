@@ -29,8 +29,14 @@ public class NovaPoshtaService {
     }
 
     public List<NovaPoshtaWarehouseDto> getWarehouses(String cityRef) {
-        NovaPoshtaApiRequest requestBody = new NovaPoshtaApiRequest(apiKey, "AddressGeneral", "getWarehouses");
-        requestBody.getMethodProperties().put("CityRef", cityRef);
+        // Змінюємо модель на "Address" (це правильна модель для фільтрації по місту)
+        NovaPoshtaApiRequest requestBody = new NovaPoshtaApiRequest(apiKey, "Address", "getWarehouses");
+
+        // Передаємо Ref міста (trim() прибирає випадкові пробіли, якщо вони є)
+        requestBody.getMethodProperties().put("CityRef", cityRef.trim());
+
+        // Ставимо ліміт на 500 відділень, щоб API гарантовано віддало результат і не впало від перевантаження
+        requestBody.getMethodProperties().put("Limit", "500");
 
         List<NovaPoshtaWarehouseDto> result = new ArrayList<>();
         try {

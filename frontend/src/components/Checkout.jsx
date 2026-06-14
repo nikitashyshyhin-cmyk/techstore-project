@@ -132,8 +132,13 @@ const Checkout = () => {
         comment
       });
 
-      const { orderId, status } = response.data;
-      const finalOrderId = orderId || response.data.id || 'new';
+      // Беремо дані з відповіді
+      const data = response.data;
+
+      // Перевіряємо всі можливі варіанти назви поля (orderId, order_id, id), які міг віддати бекенд
+      const finalOrderId = data.orderId || data.order_id || data.id || 'new';
+
+      // Переходимо на сторінку підтвердження
       navigate(`/orders/${finalOrderId}/confirmation`);
       
     } catch (err) {
