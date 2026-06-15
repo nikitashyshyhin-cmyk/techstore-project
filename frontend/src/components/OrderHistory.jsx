@@ -30,6 +30,23 @@ const OrderHistory = () => {
     }
   };
 
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case 'CREATED': 
+        return <span className="bg-blue-100 text-blue-700 px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider">Нове</span>;
+      case 'PROCESSING': 
+        return <span className="bg-yellow-100 text-yellow-700 px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider">В обробці</span>;
+      case 'SHIPPED': 
+        return <span className="bg-purple-100 text-purple-700 px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider">Відправлено</span>;
+      case 'COMPLETED': 
+        return <span className="bg-green-100 text-green-700 px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider">Виконано</span>;
+      case 'CANCELLED': 
+        return <span className="bg-red-100 text-red-700 px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider">Скасовано</span>;
+      default: 
+        return <span className="bg-gray-100 text-gray-400 px-2.5 py-1 rounded-md text-[11px] font-bold uppercase tracking-wider">{status || 'Не вказано'}</span>;
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -76,8 +93,11 @@ const OrderHistory = () => {
           {/* Шапка замовлення */}
           <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
             <div>
-              <div className="mb-1">
+              {/* Контейнер для вирівнювання номера та статусу в один рядок */}
+              <div className="flex items-center gap-3 mb-1">
                 <span className="font-bold text-gray-800 text-lg">Замовлення #{order.orderId}</span>
+                {/* Виклик статусу */}
+                {getStatusBadge(order.status)}
               </div>
               <span className="text-sm text-gray-500">
                 {new Date(order.createdAt).toLocaleDateString('uk-UA', { 
