@@ -147,6 +147,16 @@ public class ProductServiceImpl implements ProductService {
                 )
                 .stream()
                 .limit(4)
+                .map(product -> new PopularProductDto(
+                        product.getId(),
+                        product.getName(),
+                        truncate(
+                                product.getDescription(),
+                                55
+                        ),
+                        product.getPrice(),
+                        product.getImageUrl()
+                ))
                 .toList();
     }
 }
